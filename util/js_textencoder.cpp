@@ -81,12 +81,12 @@ namespace OHOS::Util {
         NAPI_CALL(env_, napi_create_object(env_, &result));
 
         napi_value read = nullptr;
-        NAPI_CALL(env_, napi_create_uint32(env_, nchars, &read));
+        NAPI_CALL(env_, napi_create_int32(env_, nchars, &read));
 
         NAPI_CALL(env_, napi_set_named_property(env_, result, "read", read));
 
         napi_value resWritten = nullptr;
-        NAPI_CALL(env_, napi_create_uint32(env_, written, &resWritten));
+        NAPI_CALL(env_, napi_create_int32(env_, written, &resWritten));
 
         NAPI_CALL(env_, napi_set_named_property(env_, result, "written", resWritten));
 
