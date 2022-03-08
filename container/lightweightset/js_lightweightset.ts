@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -63,6 +63,9 @@ if (flag || fastLightWeightSet === undefined) {
       return true;
     }
     addAll(set: LightWeightSet<T>): boolean {
+      if(!(set instanceof LightWeightSet)) {
+        throw new TypeError("Incoming object is not JSAPILightWeightSet");
+      }
       let change = false;
       if (set.memberNumber == 0) {
         change = false;
@@ -85,6 +88,8 @@ if (flag || fastLightWeightSet === undefined) {
     }
     equal(obj: Object): boolean {
       if (this.memberNumber === 0) return false;
+      if(obj instanceof LightWeightSet) 
+        return JSON.stringify(obj.members.keys) === JSON.stringify(this.members.keys);
       if (JSON.stringify(obj) === JSON.stringify(this.members.keys)) return true;
       return false;
     }
@@ -129,8 +134,8 @@ if (flag || fastLightWeightSet === undefined) {
       let count = 0;
       return {
         next: function () {
-          var done = count >= data.memberNumber;
-          var value = !done ? data.members.keys[count] : undefined;
+          let done = count >= data.memberNumber;
+          let value = !done ? data.members.keys[count] : undefined;
           count++;
           return {
             done: done,
@@ -156,9 +161,9 @@ if (flag || fastLightWeightSet === undefined) {
       let count = 0;
       return {
         next: function () {
-          var done = count >= data.memberNumber;
-          var tempValue = data.members.keys[count];
-          var value = !done ? ([tempValue, tempValue] as [T, T]) : undefined;
+          let done = count >= data.memberNumber;
+          let tempValue = data.members.keys[count];
+          let value = !done ? ([tempValue, tempValue] as [T, T]) : undefined;
           count++;
           return {
             done: done,

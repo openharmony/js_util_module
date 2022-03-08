@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -77,63 +77,59 @@ if (flag || fastTreeSet === undefined) {
     }
     getFirstValue(): T {
       let tempNode = this.constitute.firstNode();
-      if (tempNode === undefined)
-        throw new Error("don't find this key,this tree is empty");
+      if (tempNode === undefined) return tempNode;
       return tempNode.key;
     }
     getLastValue(): T {
       let tempNode = this.constitute.lastNode();
-      if (tempNode === undefined)
-        throw new Error("don't find this key,this tree is empty");
+      if (tempNode === undefined) return tempNode;
       return tempNode.key;
     }
     getLowerValue(key: T): T {
+      let result: any = undefined;
       let tempNode = this.constitute.getNode(key);
-      if (tempNode === undefined)
-        throw new Error("don't find this key,this node is undefine");
+      if (tempNode === undefined) return tempNode;
       if (tempNode.left !== undefined) return tempNode.left.key;
       let node = tempNode;
       while (node.parent !== undefined) {
         if (node.parent.right === node) return node.parent.key;
         node = node.parent; // node.parent.left === node is true;
       }
-      throw new Error("don't find a key meet the conditions");
+      return result;
     }
     getHigherValue(key: T): T {
+      let result: any = undefined;
       let tempNode = this.constitute.getNode(key);
-      if (tempNode === undefined)
-        throw new Error("don't find this key,this node is undefine");
+      if (tempNode === undefined) return tempNode;
       if (tempNode.right !== undefined) return tempNode.right.key;
       let node = tempNode;
       while (node.parent !== undefined) {
         if (node.parent.left === node) return node.parent.key;
         node = node.parent; // node.parent.right === node is true;
       }
-      throw new Error("don't find a key meet the conditions");
+      return result;
     }
     popFirst(): T {
       let firstNode = this.constitute.firstNode();
-      if (firstNode === undefined)
-        throw new Error("don't find first node,this tree is empty");
+      if (firstNode === undefined) return firstNode;
       let value = firstNode.value;
       this.constitute.removeNodeProcess(firstNode);
-      return value as T;
+      return value;
     }
     popLast(): T {
       let lastNode = this.constitute.lastNode();
-      if (lastNode === undefined)
-        throw new Error("don't find last node,this tree is empty");
+      if (lastNode === undefined) return lastNode;
       let value = lastNode.value;
       this.constitute.removeNodeProcess(lastNode);
-      return value as T;
+      return value;
     }
     values(): IterableIterator<T> {
       let data = this.constitute;
       let count = 0;
       return {
         next: function () {
-          var done = count >= data.memberNumber;
-          var value = !done ? data.keyValueArray[count].value as T : undefined;
+          let done = count >= data.memberNumber;
+          let value = !done ? data.keyValueArray[count].value as T : undefined;
           count++;
           return {
             done: done,
@@ -155,8 +151,8 @@ if (flag || fastTreeSet === undefined) {
       let count = 0;
       return {
         next: function () {
-          var done = count >= data.memberNumber;
-          var value = !done ? data.keyValueArray[count].entry() : undefined;
+          let done = count >= data.memberNumber;
+          let value = !done ? data.keyValueArray[count].entry() : undefined;
           count++;
           return {
             done: done,
@@ -170,8 +166,8 @@ if (flag || fastTreeSet === undefined) {
       let count = 0;
       return {
         next: function () {
-          var done = count >= data.memberNumber;
-          var value = !done ? data.keyValueArray[count].key : undefined;
+          let done = count >= data.memberNumber;
+          let value = !done ? data.keyValueArray[count].key : undefined;
           count++;
           return {
             done: done,

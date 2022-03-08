@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -59,7 +59,7 @@ if (flag || fastPlainArray === undefined) {
     }
     add(key: number, value: T): void {
       if (typeof key !== "number") {
-        throw new Error("PlainArray's only number is allowed");
+        throw new TypeError("the index is not integer");
       }
       this.addmember(key, value);
     }
@@ -78,13 +78,22 @@ if (flag || fastPlainArray === undefined) {
       return clone;
     }
     has(key: number): boolean {
+      if (typeof key !== "number") {
+        return false;
+      }
       return this.binarySearchAtPlain(key) > -1;
     }
     get(key: number): T {
+      if (typeof key !== "number") {
+        throw new TypeError("the index is not integer");
+      }
       let index = this.binarySearchAtPlain(key);
       return this.members.values[index];
     }
     getIndexOfKey(key: number): number {
+      if (typeof key !== "number") {
+        throw new TypeError("the index is not integer");
+      }
       let result = this.binarySearchAtPlain(key);
       return result < 0 ? -1 : result;
     }
@@ -95,28 +104,45 @@ if (flag || fastPlainArray === undefined) {
       return this.memberNumber === 0;
     }
     getKeyAt(index: number): number {
+      if (typeof index !== "number") {
+        throw new TypeError("the index is not integer");
+      }
       return this.members.keys[index];
     }
     remove(key: number): T {
+      let result: any = undefined;
+      if (typeof key !== "number") {
+        throw new TypeError("the index is not integer");
+      }
       let index = this.binarySearchAtPlain(key);
-      if (index < 0) throw new Error("element not in this plainarray");
+      if (index < 0) return result;
       return this.deletemember(index);
     }
     removeAt(index: number): T {
-      if (index >= this.memberNumber || index < 0) throw new Error("index not in this plainarray range");
+      if (typeof index !== "number") {
+        throw new TypeError("the index is not integer");
+      }
+      let result: any = undefined;
+      if (index >= this.memberNumber || index < 0) return result;
       return this.deletemember(index);
     }
     removeRangeFrom(index: number, size: number): number {
-      if (index >= this.memberNumber || index < 0) throw new Error("index not in this plainarray range");
+      if (typeof index !== "number" || typeof size !== "number") {
+        throw new TypeError("the index is not integer");
+      }
+      if (index >= this.memberNumber || index < 0) throw new RangeError("the index is out-of-bounds");
       let safeSize = (this.memberNumber - (index + size) < 0) ? this.memberNumber - index : size;
       this.deletemember(index, safeSize);
       return safeSize;
     }
     setValueAt(index: number, value: T): void {
+      if (typeof index !== "number") {
+        throw new TypeError("the index is not integer");
+      }
       if (index >= 0 && index < this.memberNumber) {
         this.members.values[index] = value;
       } else {
-        throw new Error("index Out Of Bounds");
+        throw new RangeError("the index is out-of-bounds");
       }
     }
     toString(): string {
@@ -127,6 +153,9 @@ if (flag || fastPlainArray === undefined) {
       return result.join(",");
     }
     getValueAt(index: number): T {
+      if (typeof index !== "number") {
+        throw new TypeError("the index is not integer");
+      }
       return this.members.values[index];
     }
     forEach(callbackfn: (value: T, index?: number, PlainArray?: PlainArray<T>) => void,
@@ -140,8 +169,8 @@ if (flag || fastPlainArray === undefined) {
       let count = 0;
       return {
         next: function () {
-          var done = count >= data.memberNumber;
-          var value = !done ? [data.members.keys[count], data.members.values[count]] as [number, T] : undefined;
+          let done = count >= data.memberNumber;
+          let value = !done ? [data.members.keys[count], data.members.values[count]] as [number, T] : undefined;
           count++;
           return {
             done: done,
