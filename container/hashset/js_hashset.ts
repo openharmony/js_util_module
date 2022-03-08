@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -87,8 +87,8 @@ if (flag || fastHashSet === undefined) {
       let count = 0;
       return {
         next: function () {
-          var done = count >= data.memberNumber;
-          var value = !done ? data.keyValueArray[count].key : undefined;
+          let done = count >= data.memberNumber;
+          let value = !done ? data.keyValueArray[count].key : undefined;
           count++;
           return {
             done: done,
@@ -102,8 +102,8 @@ if (flag || fastHashSet === undefined) {
       let count = 0;
       return {
         next: function () {
-          var done = count >= data.memberNumber;
-          var value = !done ? data.keyValueArray[count].entry() : undefined;
+          let done = count >= data.memberNumber;
+          let value = !done ? data.keyValueArray[count].entry() : undefined;
           count++;
           return {
             done: done,
@@ -117,8 +117,8 @@ if (flag || fastHashSet === undefined) {
       let count = 0;
       return {
         next: function () {
-          var done = count >= data.memberNumber;
-          var value = !done ? data.keyValueArray[count].key : undefined;
+          let done = count >= data.memberNumber;
+          let value = !done ? data.keyValueArray[count].key : undefined;
           count++;
           return {
             done: done,

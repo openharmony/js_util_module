@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,17 +22,19 @@ if (arkPritvate !== undefined) {
 }
 if (flag || fastStack == undefined) {
   class HandlerStack<T> {
+    private isOutBounds(obj: Stack<T>, prop: any) {
+      let index = Number.parseInt(prop);
+      if (Number.isInteger(index)) {
+        if (index < 0 || index >= obj.length) {
+          throw new RangeError("the index is out-of-bounds");
+        }
+      }
+    }
     get(obj: Stack<T>, prop: any) {
       if (typeof prop === "symbol") {
         return obj[prop];
       }
-      var index = Number.parseInt(prop);
-      if (Number.isInteger(index)) {
-        let length = obj.length;
-        if (index < 0 || index >= length) {
-          throw new Error("Stack: get out-of-bounds");
-        }
-      }
+      this.isOutBounds(obj, prop);
       return obj[prop];
     }
     set(obj: Stack<T>, prop: any, value: T) {
@@ -40,22 +42,18 @@ if (flag || fastStack == undefined) {
         obj[prop] = value;
         return true;
       }
-      var index = Number.parseInt(prop);
-      if (Number.isInteger(index)) {
-        let length = obj.length;
-        if (index < 0 || index >= length) {
-          throw new Error("Stack: set out-of-bounds");
-        } else {
-          obj[index] = value;
-          return true;
-        }
+      this.isOutBounds(obj, prop);
+      let index = Number.parseInt(prop);
+      if (index >= 0 && index < obj.length && Number.isInteger(index)) {
+        obj[index] = value;
+        return true;
       }
       return false;
     }
     ownKeys(obj: Stack<T>) {
-      var keys = [];
+      let keys = [];
       let length = obj.length;
-      for (var i = 0; i < length; i++) {
+      for (let i = 0; i < length; i++) {
         keys.push(i.toString());
       }
       return keys;
@@ -64,18 +62,15 @@ if (flag || fastStack == undefined) {
       return true;
     }
     getOwnPropertyDescriptor(obj: Stack<T>, prop: any) {
-      var index = Number.parseInt(prop);
-      if (Number.isInteger(index)) {
-        let length = obj.length;
-        if (index < 0 || index >= length) {
-          throw new Error("Stack: getOwnPropertyDescriptor out-of-bounds");
-        }
+      this.isOutBounds(obj, prop);
+      let index = Number.parseInt(prop);
+      if (index >= 0 && index < obj.length && Number.isInteger(index)) {
         return Object.getOwnPropertyDescriptor(obj, prop);
       }
-      return;
+      return
     }
     setPrototypeOf(obj: any, prop: any): any {
-      throw new Error("Can setPrototype on Stack Object");  
+      throw new RangeError("Can setPrototype on Stack Object");  
     }
   }
   interface IterableIterator<T> {
@@ -101,11 +96,17 @@ if (flag || fastStack == undefined) {
       return item;
     }
     pop(): T {
+      if (this.isEmpty()) {
+        return undefined;
+      }
       let result = this[this.length - 1];
       this.elementNum--;
       return result;
     }
     peek(): T {
+      if (this.isEmpty()) {
+        return undefined;
+      }
       return this[this.length - 1];
     }
     locate(element: T): number {
@@ -136,8 +137,8 @@ if (flag || fastStack == undefined) {
       let stack = this;
       return {
         next: function () {
-          var done = count >= stack.elementNum;
-          var value = !done ? stack[count++] : undefined;
+          let done = count >= stack.elementNum;
+          let value = !done ? stack[count++] : undefined;
           return {
             done: done,
             value: value,
