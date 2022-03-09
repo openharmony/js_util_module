@@ -22,16 +22,19 @@ if (arkPritvate !== undefined) {
 }
 if (flag || fastArrayList == undefined) {
   class HandlerArrayList<T> {
+    private isOutBounds(obj: ArrayList<T>, prop: any) {
+      let index = Number.parseInt(prop);
+      if (Number.isInteger(index)) {
+        if (index < 0 || index >= obj.length) {
+          throw new RangeError("the index is out-of-bounds");
+        }
+      }
+    }
     get(obj: ArrayList<T>, prop: any) {
       if (typeof prop === "symbol") {
         return obj[prop];
       }
-      var index = Number.parseInt(prop);
-      if (Number.isInteger(index)) {
-        if (index < 0 || index >= obj.length) {
-          throw new Error("ArrayList: get out-of-bounds");
-        }
-      }
+      this.isOutBounds(obj, prop);
       return obj[prop];
     }
     set(obj: ArrayList<T>, prop: any, value: T) {
@@ -39,10 +42,10 @@ if (flag || fastArrayList == undefined) {
         obj[prop] = value;
         return true;
       }
-      var index = Number.parseInt(prop);
+      let index = Number.parseInt(prop);
       if (Number.isInteger(index)) {
         if (index < 0 || index > obj.length) {
-          throw new Error("ArrayList: set out-of-bounds");
+          throw new RangeError("the index is out-of-bounds");
         } else {
           obj[index] = value;
           return true;
@@ -51,11 +54,9 @@ if (flag || fastArrayList == undefined) {
       return false;
     }
     deleteProperty(obj: ArrayList<T>, prop: any) {
-      var index = Number.parseInt(prop);
-      if (Number.isInteger(index)) {
-        if (index < 0 || index >= obj.length) {
-          throw new Error("ArrayList: deleteProperty out-of-bounds");
-        }
+      this.isOutBounds(obj, prop);
+      let index = Number.parseInt(prop);
+      if (index >= 0 && index < obj.length && Number.isInteger(index)) {
         obj.removeByIndex(index);
         return true;
       }
@@ -75,17 +76,15 @@ if (flag || fastArrayList == undefined) {
       return true;
     }
     getOwnPropertyDescriptor(obj: ArrayList<T>, prop: any) {
-      var index = Number.parseInt(prop);
-      if (Number.isInteger(index)) {
-        if (index < 0 || index >= obj.length) {
-          throw new Error("ArrayList: getOwnPropertyDescriptor out-of-bounds");
-        }
+      this.isOutBounds(obj, prop);
+      let index = Number.parseInt(prop);
+      if (index >= 0 && index < obj.length && Number.isInteger(index)) {
         return Object.getOwnPropertyDescriptor(obj, prop);
       }
       return;
     }
     setPrototypeOf(obj: any, prop: any): T {
-      throw new Error("Can setPrototype on ArrayList Object");  
+      throw new TypeError("Can setPrototype on ArrayList Object");
     }
   }
   interface IterableIterator<T> {
@@ -111,6 +110,9 @@ if (flag || fastArrayList == undefined) {
       return true;
     }
     insert(element: T, index: number): void {
+      if (index < 0 || index >= this.elementNum) {
+        throw new RangeError("the index is out-of-bounds");
+      }
       if (this.isFull()) {
         this.resize();
       }
@@ -138,7 +140,7 @@ if (flag || fastArrayList == undefined) {
     }
     removeByIndex(index: number): T {
       if (index < 0 || index >= this.elementNum) {
-        throw new Error("removeByIndex is out-of-bounds");
+        throw new RangeError("the index is out-of-bounds");
       }
       let result = this[index];
       for (let i = index; i < this.elementNum - 1; i++) {
@@ -168,9 +170,12 @@ if (flag || fastArrayList == undefined) {
     }
     removeByRange(fromIndex: number, toIndex: number): void {
       if (fromIndex >= toIndex) {
-        throw new Error(`fromIndex cannot be less than or equal to toIndex`);
+        throw new RangeError(`the fromIndex cannot be less than or equal to toIndex`);
       }
-      toIndex = toIndex >= this.elementNum - 1 ? this.elementNum - 1 : toIndex;
+      if (fromIndex >= this.elementNum || fromIndex < 0 || toIndex < 0) {
+        throw new RangeError(`the fromIndex or the toIndex is out-of-bounds`);
+      }
+      toIndex = toIndex >= this.elementNum ? this.elementNum : toIndex;
       let i = fromIndex;
       for (let j = toIndex; j < this.elementNum; j++) {
         this[i] = this[j];
@@ -178,13 +183,13 @@ if (flag || fastArrayList == undefined) {
       }
       this.elementNum -= toIndex - fromIndex;
     }
-    replaceAllElements(callbackfn: (value: T, index?: number, arraylist?: ArrayList<T>) => T,
+    replaceAllElements(callbackfn: (value: T, index?: number, arrList?: ArrayList<T>) => T,
       thisArg?: Object): void {
       for (let i = 0; i < this.elementNum; i++) {
         this[i] = callbackfn.call(thisArg, this[i], i, this);
       }
     }
-    forEach(callbackfn: (value: T, index?: number, arraylist?: ArrayList<T>) => void,
+    forEach(callbackfn: (value: T, index?: number, arrList?: ArrayList<T>) => void,
       thisArg?: Object): void {
       for (let i = 0; i < this.elementNum; i++) {
         callbackfn.call(thisArg, this[i], i, this);
@@ -204,7 +209,7 @@ if (flag || fastArrayList == undefined) {
           }
         }
       } else {
-        for (var i = 0; i < this.length - 1; i++) {
+        for (let i = 0; i < this.length - 1; i++) {
           for (let j = 0; j < this.elementNum - 1 - i; j++) {
             if (this.asciSort(this[j], this[j + 1])) {
               isSort = false;
@@ -221,26 +226,26 @@ if (flag || fastArrayList == undefined) {
     }
     private asciSort(curElement: any, nextElement: any): boolean {
       if ((Object.prototype.toString.call(curElement) === "[object String]" ||
-          Object.prototype.toString.call(curElement) === "[object Number]") &&
-          (Object.prototype.toString.call(nextElement) === "[object String]" ||
-          Object.prototype.toString.call(nextElement) === "[object Number]")) {
-          curElement = curElement.toString();
-          nextElement = nextElement.toString();
-          if(curElement > nextElement) {
-            return true;
-          }
-          return false
+        Object.prototype.toString.call(curElement) === "[object Number]") &&
+        (Object.prototype.toString.call(nextElement) === "[object String]" ||
+        Object.prototype.toString.call(nextElement) === "[object Number]")) {
+        curElement = curElement.toString();
+        nextElement = nextElement.toString();
+        if (curElement > nextElement) {
+          return true;
+        }
+        return false
       }
       return false;
     }
     subArrayList(fromIndex: number, toIndex: number): ArrayList<T> {
       if (fromIndex >= toIndex) {
-        throw new Error(`fromIndex cannot be less than or equal to toIndex`);
+        throw new RangeError(`the fromIndex cannot be less than or equal to toIndex`);
       }
       if (fromIndex >= this.elementNum || fromIndex < 0 || toIndex < 0) {
-        throw new Error(`fromIndex or toIndex is out-of-bounds`);
+        throw new RangeError(`the fromIndex or the toIndex is out-of-bounds`);
       }
-      toIndex = toIndex > this.elementNum ? this.elementNum - 1 : toIndex;
+      toIndex = toIndex >= this.elementNum ? this.elementNum : toIndex;
       let arraylist = new ArrayList<T>();
       for (let i = fromIndex; i < toIndex; i++) {
         arraylist.add(this[i]);
@@ -289,8 +294,8 @@ if (flag || fastArrayList == undefined) {
       let arraylist = this;
       return {
         next: function () {
-          var done = count >= arraylist.elementNum;
-          var value = !done ? arraylist[count++] : undefined;
+          let done = count >= arraylist.elementNum;
+          let value = !done ? arraylist[count++] : undefined;
           return {
             done: done,
             value: value,

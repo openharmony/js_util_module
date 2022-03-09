@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+type CompFun<T> = (firstValue: T, secondValue: T) => boolean;
+
 function hashCode(element: any): number {
   let str = String(element);
   let hash = 0;
@@ -56,7 +58,7 @@ function compareToString(string1: String, string2: String) {
   throw new Error("this function run error");
 }
 
-function currencyCompare(a: any, b: any, compareFn?: Function): number {
+function currencyCompare(a: any, b: any, compareFn?: CompFun<any>): number {
   if (a === b) return ComparResult.EQUALS;
   if (a instanceof Pair && b instanceof Pair) {
     return currencyCompare(a.key, b.key, compareFn);
@@ -198,14 +200,15 @@ class LightWeightClass<K, V> {
   protected getIndexByKey(key: K): number {
     let hash = hashCode(key);
     let index = this.binarySearchAtLightWeight(hash);
+    // js ( A negative number indicates an inverted number in the array )
     if (index < 0 || index >= this.memberNumber) return -1;
     return index;
   }
 
   protected deletemember(key: K): V {
+    let result: any = undefined;
     let index = this.getIndexByKey(key);
-    if (index < 0)
-      throw new Error("don't find the key in lightweight");
+    if (index < 0) return result;
     this.memberNumber--;
     this.members.hashs.splice(index, 1);
     this.members.keys.splice(index, 1);
@@ -279,8 +282,8 @@ class RBTreeClass<K, V> {
   public memberNumber: number;
   private isChange: boolean;
   private treeNodeArray: Array<RBTreeNode<K, V>>;
-  private compFun: Function | undefined;
-  constructor(comparator?: (firstValue: K, secondValue: K) => boolean, root?: RBTreeNode<K, V>) {
+  private compFun: CompFun<K> | undefined;
+  constructor(comparator?: CompFun<K>, root?: RBTreeNode<K, V>) {
     this.root = root;
     this.compFun = comparator;
     this.memberNumber = 0;
@@ -751,39 +754,36 @@ class DictionaryClass<K, V>  {
   }
 
   protected put(key: K, value: V = key as unknown as V): boolean {
-    if (key != undefined && value != undefined) {
-      this.isChange = true;
-      if (!this.hasKey(key)) this.memberNumber++;
-      const position = this.getHashIndex(key);
-      let members = this.tableLink[position];
-      if (members instanceof LinkedList && members.count >= 8) {
-        let newElement = new RBTreeClass<K, V>();
-        let current = members.getHead();
-        while (current != null || current != undefined) {
-          if (!(current.element instanceof Pair))
-            throw new Error("this hashtable member save error");
-          newElement.addNode(current.element.key, current.element.value);
-          current = current.next;
-        }
-        newElement.addNode(key, value);
-        this.tableLink[position] = newElement;
-        return true;
-      } else if (members instanceof RBTreeClass) {
-        members.addNode(key, value);
-        this.tableLink[position] = members;
-        return true;
-      } else {
-        if (this.tableLink[position] == undefined) {
-          members = new LinkedList<Pair<K, V>>();
-        }
-        if (!this.replaceMember(key, value)) {
-          members.push(new Pair(key, value));
-          this.tableLink[position] = members;
-        }
-        return true;
+
+    this.isChange = true;
+    if (!this.hasKey(key)) this.memberNumber++;
+    const position = this.getHashIndex(key);
+    let members = this.tableLink[position];
+    if (members instanceof LinkedList && members.count >= 8) {
+      let newElement = new RBTreeClass<K, V>();
+      let current = members.getHead();
+      while (current != null || current != undefined) {
+        if (!(current.element instanceof Pair)) return false;
+        newElement.addNode(current.element.key, current.element.value);
+        current = current.next;
       }
+      newElement.addNode(key, value);
+      this.tableLink[position] = newElement;
+      return true;
+    } else if (members instanceof RBTreeClass) {
+      members.addNode(key, value);
+      this.tableLink[position] = members;
+      return true;
+    } else {
+      if (this.tableLink[position] == undefined) {
+        members = new LinkedList<Pair<K, V>>();
+      }
+      if (!this.replaceMember(key, value)) {
+        members.push(new Pair(key, value));
+        this.tableLink[position] = members;
+      }
+      return true;
     }
-    return false;
   }
 
   protected replaceMember(key: K, value: V = key as unknown as V): boolean {
@@ -978,7 +978,7 @@ class LinkedList<T> {
     return false;
   }
 
-  indexOf(element: T, compareFn?: Function) {
+  indexOf(element: T, compareFn?: CompFun<T>) {
     let current = this.head;
     for (let i = 0; i < this.count && current != undefined; i++) {
       if (currencyCompare(element, current.element, compareFn) === ComparResult.EQUALS) {
@@ -989,7 +989,7 @@ class LinkedList<T> {
     return -1;
   }
 
-  remove(element: T, compareFn?: Function) {
+  remove(element: T, compareFn?: CompFun<T>) {
     this.removeAt(this.indexOf(element, compareFn));
   }
 
@@ -1019,7 +1019,6 @@ class LinkedList<T> {
     return objString;
   }
 }
-
 
 export default {
   isIncludeToArray,
