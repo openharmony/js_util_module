@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,16 +22,20 @@ if (arkPritvate !== undefined) {
 }
 if (flag || fastQueue == undefined) {
   class HandlerQueue<T> {
+    private isOutBounds(obj: Queue<T>, prop: any) {
+      let index = Number.parseInt(prop);
+      if (Number.isInteger(index)) {
+        if (index < 0 || index > obj.length) {
+          console.log(index, obj.length)
+          throw new RangeError("the index is out-of-bounds");
+        }
+      }
+    }
     get(obj: Queue<T>, prop: any): T {
       if (typeof prop === "symbol") {
         return obj[prop];
       }
-      var index = Number.parseInt(prop);
-      if (Number.isInteger(index)) {
-        if (index < 0 || index > obj.length) {
-          throw new Error("Queue: get out-of-bounds");
-        }
-      }
+      this.isOutBounds(obj, prop);
       return obj[prop];
     }
     set(obj: Queue<T>, prop: any, value: T): boolean {
@@ -39,20 +43,17 @@ if (flag || fastQueue == undefined) {
         obj[prop] = value;
         return true;
       }
-      var index = Number(prop);
-      if (Number.isInteger(index)) {
-        if (index < 0 || index > obj.length) {
-          throw new Error("Queue: set out-of-bounds");
-        } else {
+      this.isOutBounds(obj, prop);
+      let index = Number(prop);
+      if (index >= 0 && index <= obj.length && Number.isInteger(index)) {
           obj[index] = value;
           return true;
-        }
       }
       return false;
     }
     ownKeys(obj: Queue<T>) {
-      var keys = [];
-      for (var i = 0; i < obj.length; i++) {
+      let keys = [];
+      for (let i = 0; i < obj.length; i++) {
         keys.push(i.toString());
       }
       return keys;
@@ -61,17 +62,15 @@ if (flag || fastQueue == undefined) {
       return true;
     }
     getOwnPropertyDescriptor(obj: Queue<T>, prop: any) {
-      var index = Number.parseInt(prop);
-      if (Number.isInteger(index)) {
-        if (index < 0 || index >= obj.length) {
-          throw new Error("Queue: getOwnPropertyDescriptor out-of-bounds");
-        }
+      this.isOutBounds(obj, prop);
+      let index = Number.parseInt(prop);
+      if (index >= 0 && index < obj.length && Number.isInteger(index)) {
         return Object.getOwnPropertyDescriptor(obj, prop);
       }
-      return;
+      return
     }
     setPrototypeOf(obj: any, prop: any): any {
-      throw new Error("Can setPrototype on Queue Object");  
+      throw new RangeError("Can setPrototype on Queue Object");  
     }
   }
   interface IterableIterator<T> {
@@ -102,9 +101,15 @@ if (flag || fastQueue == undefined) {
       return true;
     }
     getFirst(): T {
+      if (this.isEmpty()) {
+        return undefined;
+      }
       return this[this.front];
     }
     pop(): T {
+      if (this.isEmpty()) {
+        return undefined;
+      }
       let result = this[this.front];
       this.front = (this.front + 1) % (this.capacity + 1);
       return result;
@@ -113,25 +118,32 @@ if (flag || fastQueue == undefined) {
       thisArg?: Object): void {
       let k = 0;
       let i = this.front;
-      while (true) {
-        callbackfn.call(thisArg,this[i], k,this);
-        i = (i + 1) % this.capacity;
-        k++;
-        if (i === this.rear) {
-          break;
+      if (this.isEmpty()) {
+        return;
+      } else {
+        while (true) {
+          callbackfn.call(thisArg,this[i], k,this);
+          i = (i + 1) % this.capacity;
+          k++;
+          if (i === this.rear) {
+            break;
+          }
         }
       }
     }
     private isFull(): boolean {
       return this.length === this.capacity;
     }
+    private isEmpty(): boolean {
+      return this.length == 0;
+    }
     [Symbol.iterator](): IterableIterator<T> {
       let count = this.front;
       let queue = this;
       return {
         next: function () {
-          var done = count == queue.rear;
-          var value = !done ? queue[count] : undefined;
+          let done = count == queue.rear;
+          let value = !done ? queue[count] : undefined;
           count = (count + 1) % queue.capacity;
           return {
             done: done,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -58,6 +58,9 @@ if (flag || fastLightWeightMap === undefined) {
       return this.memberNumber;
     }
     hasAll(map: LightWeightMap<K, V>): boolean {
+      if(!(map instanceof LightWeightMap)) {
+        throw new TypeError("map is not JSAPILightWeightMap");
+      }
       if (map.memberNumber > this.memberNumber) return false;
       if (LightWeightAbility.isIncludeToArray(this.keyValueStringArray(), map.keyValueStringArray()) ) {
         return true;
@@ -71,6 +74,9 @@ if (flag || fastLightWeightMap === undefined) {
       return this.members.values.indexOf(value) > -1;
     }
     increaseCapacityTo(minimumCapacity: number): void {
+      if (typeof minimumCapacity !== "number") {
+        throw new TypeError("the size is not integer");
+      }
       super.ensureCapacity(minimumCapacity);
     }
     entries(): IterableIterator<[K, V]> {
@@ -78,8 +84,8 @@ if (flag || fastLightWeightMap === undefined) {
       let count = 0;
       return {
         next: function () {
-          var done = count >= data.memberNumber;
-          var value = !done ? [data.members.keys[count], data.members.values[count]] as [K, V] : undefined;
+          let done = count >= data.memberNumber;
+          let value = !done ? [data.members.keys[count], data.members.values[count]] as [K, V] : undefined;
           count++;
           return {
             done: done,
@@ -102,6 +108,9 @@ if (flag || fastLightWeightMap === undefined) {
       return this.memberNumber === 0;
     }
     getKeyAt(index: number): K {
+      if (typeof index !== "number") {
+        throw new TypeError("the index is not integer");
+      }
       return this.members.keys[index];
     }
     keys(): IterableIterator<K> {
@@ -109,8 +118,8 @@ if (flag || fastLightWeightMap === undefined) {
       let count = 0;
       return {
         next: function () {
-          var done = count >= data.memberNumber;
-          var value = !done ? data.members.keys[count] : undefined;
+          let done = count >= data.memberNumber;
+          let value = !done ? data.members.keys[count] : undefined;
           count++;
           return {
             done: done,
@@ -120,6 +129,9 @@ if (flag || fastLightWeightMap === undefined) {
       };
     }
     setAll(map: LightWeightMap<K, V>): void {
+      if(!(map instanceof LightWeightMap)) {
+        throw new TypeError("Incoming object is not JSAPILightWeightMap");
+      }
       if (this.memberNumber === 0) {
         this.members.hashs = map.members.hashs.slice();
         this.members.keys = map.members.keys.slice();
@@ -172,8 +184,8 @@ if (flag || fastLightWeightMap === undefined) {
       let count = 0;
       return {
         next: function () {
-          var done = count >= data.memberNumber;
-          var value = !done ? [data.members.keys[count], data.members.values[count]] as [K, V] : undefined;
+          let done = count >= data.memberNumber;
+          let value = !done ? [data.members.keys[count], data.members.values[count]] as [K, V] : undefined;
           count++;
           return {
             done: done,
@@ -197,8 +209,8 @@ if (flag || fastLightWeightMap === undefined) {
       let count = 0;
       return {
         next: function () {
-          var done = count >= data.memberNumber;
-          var value = !done ? data.members.values[count] : undefined;
+          let done = count >= data.memberNumber;
+          let value = !done ? data.members.values[count] : undefined;
           count++;
           return {
             done: done,

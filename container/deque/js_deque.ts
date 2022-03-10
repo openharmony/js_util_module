@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,16 +22,19 @@ if (arkPritvate !== undefined) {
 }
 if (flag || fastDeque == undefined) {
   class HandlerDeque<T> {
+    private isOutBounds(obj: Deque<T>, prop: any) {
+      let index = Number.parseInt(prop);
+      if (Number.isInteger(index)) {
+        if (index < 0) {
+          throw new RangeError("the index is out-of-bounds");
+        }
+      }
+    }
     get(obj: Deque<T>, prop: any): T {
       if (typeof prop === "symbol") {
         return obj[prop];
       }
-      var index = Number.parseInt(prop);
-      if (Number.isInteger(index)) {
-        if (index < 0) {
-          throw new Error("Deque: get out-of-bounds");
-        }
-      }
+      this.isOutBounds(obj, prop);
       return obj[prop];
     }
     set(obj: Deque<T>, prop: any, value: T): boolean {
@@ -39,10 +42,10 @@ if (flag || fastDeque == undefined) {
         obj[prop] = value;
         return true;
       }
-      var index = Number(prop);
+      let index = Number(prop);
       if (Number.isInteger(index)) {
         if (index < 0) {
-          throw new Error("Deque: set out-of-bounds");
+          throw new RangeError("index is out-of-bounds");
         } else {
           obj[index] = value;
           return true;
@@ -64,17 +67,15 @@ if (flag || fastDeque == undefined) {
       return true;
     }
     getOwnPropertyDescriptor(obj: Deque<T>, prop: any) {
-      var index = Number.parseInt(prop);
-      if (Number.isInteger(index)) {
-        if (index < 0 || index >= obj.length) {
-          throw new Error("Deque: getOwnPropertyDescriptor out-of-bounds");
-        }
+      this.isOutBounds(obj, prop);
+      let index = Number.parseInt(prop);
+      if (index >= 0 && Number.isInteger(index)) {
         return Object.getOwnPropertyDescriptor(obj, prop);
       }
-      return;
+      return
     }
     setPrototypeOf(obj: any, prop: any): any {
-      throw new Error("Can setPrototype on Deque Object");  
+      throw new RangeError("Can setPrototype on Deque Object");
     }
   }
   interface IterableIterator<T> {
@@ -93,7 +94,7 @@ if (flag || fastDeque == undefined) {
       this.rear = 0;
       return new Proxy(this, new HandlerDeque());
     }
-    get length(){
+    get length() {
       let result = (this.rear - this.front + this.capacity) % this.capacity;
       return result;
     }
@@ -112,9 +113,15 @@ if (flag || fastDeque == undefined) {
       this.rear = (this.rear + 1) % (this.capacity + 1);
     }
     getFirst(): T {
+      if (this.isEmpty()) {
+        return undefined;
+      }
       return this[this.front];
     }
     getLast(): T {
+      if (this.isEmpty()) {
+        return undefined;
+      }
       return this[this.rear - 1];
     }
     has(element: T): boolean {
@@ -127,11 +134,17 @@ if (flag || fastDeque == undefined) {
       return result;
     }
     popFirst(): T {
+      if (this.isEmpty()) {
+        return undefined;
+      }
       let result = this[this.front];
       this.front = (this.front + 1) % (this.capacity + 1);
       return result;
     }
     popLast(): T {
+      if (this.isEmpty()) {
+        return undefined;
+      }
       let result = this[this.rear - 1];
       this.rear = (this.rear + this.capacity) % (this.capacity + 1);
       return result;
@@ -170,13 +183,16 @@ if (flag || fastDeque == undefined) {
     private isFull(): boolean {
       return (this.rear + 1) % this.capacity === this.front;
     }
+    private isEmpty(): boolean {
+      return this.length == 0;
+    }
     [Symbol.iterator](): IterableIterator<T> {
       let deque = this;
       let count = deque.front;
       return {
         next: function () {
-          var done = count == deque.rear;
-          var value = !done ? deque[count] : undefined;
+          let done = count == deque.rear;
+          let value = !done ? deque[count] : undefined;
           count = (count + 1) % deque.capacity;
           return {
             done: done,

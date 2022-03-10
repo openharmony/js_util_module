@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -69,20 +69,19 @@ if (flag || fastTreeMap === undefined) {
     }
     get(key: K): V {
       let tempNode = this.constitute.getNode(key);
-      if (tempNode === undefined)
-        throw new Error("The node of this key does not exist in the tree");
+      if (tempNode === undefined) return tempNode;
       return tempNode.value;
     }
     getFirstKey(): K {
       let tempNode = this.constitute.firstNode();
       if (tempNode === undefined)
-        throw new Error("don't find this key,this tree is empty");
+        return tempNode;
       return tempNode.key;
     }
     getLastKey(): K {
       let tempNode = this.constitute.lastNode();
       if (tempNode === undefined)
-        throw new Error("don't find this key,this tree is empty");
+        return tempNode;
       return tempNode.key;
     }
     setAll(map: TreeMap<K, V>) {
@@ -98,36 +97,36 @@ if (flag || fastTreeMap === undefined) {
       this.constitute.clearTree();
     }
     getLowerKey(key: K): K {
+      let result: any = undefined;
       let tempNode = this.constitute.getNode(key);
-      if (tempNode === undefined)
-        throw new Error("don't find this key,this node is undefine");
+      if (tempNode === undefined) return tempNode;
       if (tempNode.left !== undefined) return tempNode.left.key;
       let node = tempNode;
       while (node.parent !== undefined) {
         if (node.parent.right === node) return node.parent.key;
         node = node.parent;
       }
-      throw new Error("don't find a key meet the conditions");
+      return result;
     }
     getHigherKey(key: K): K {
+      let result: any = undefined;
       let tempNode = this.constitute.getNode(key);
-      if (tempNode === undefined)
-        throw new Error("don't find this key,this node is undefine");
+      if (tempNode === undefined) return tempNode;
       if (tempNode.right !== undefined) return tempNode.right.key;
       let node = tempNode;
       while (node.parent !== undefined) {
         if (node.parent.left === node) return node.parent.key;
         node = node.parent;
       }
-      throw new Error("don't find a key meet the conditions");
+      return result;
     }
     keys(): IterableIterator<K> {
       let data = this.constitute;
       let count = 0;
       return {
         next: function () {
-          var done = count >= data.memberNumber;
-          var value = !done ? data.keyValueArray[count].key : undefined;
+          let done = count >= data.memberNumber;
+          let value = !done ? data.keyValueArray[count].key : undefined;
           count++;
           return {
             done: done,
@@ -141,8 +140,8 @@ if (flag || fastTreeMap === undefined) {
       let count = 0;
       return {
         next: function () {
-          var done = count >= data.memberNumber;
-          var value = !done ? data.keyValueArray[count].value : undefined;
+          let done = count >= data.memberNumber;
+          let value = !done ? data.keyValueArray[count].value : undefined;
           count++;
           return {
             done: done,
@@ -170,8 +169,8 @@ if (flag || fastTreeMap === undefined) {
       let count = 0;
       return {
         next: function () {
-          var done = count >= data.memberNumber;
-          var value = !done ? data.keyValueArray[count].entry() : undefined;
+          let done = count >= data.memberNumber;
+          let value = !done ? data.keyValueArray[count].entry() : undefined;
           count++;
           return {
             done: done,
@@ -185,8 +184,8 @@ if (flag || fastTreeMap === undefined) {
       let count = 0;
       return {
         next: function () {
-          var done = count >= data.memberNumber;
-          var value = !done ? data.keyValueArray[count].entry() : undefined;
+          let done = count >= data.memberNumber;
+          let value = !done ? data.keyValueArray[count].entry() : undefined;
           count++;
           return {
             done: done,

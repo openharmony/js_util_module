@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,16 +22,19 @@ if (arkPritvate !== undefined) {
 }
 if (flag || fastVector == undefined) {
   class HandlerVector<T> {
+    private isOutBounds(obj: Vector<T>, prop: any) {
+      let index = Number.parseInt(prop);
+      if (Number.isInteger(index)) {
+        if (index < 0 || index >= obj.length) {
+          throw new RangeError("the index is out-of-bounds");
+        }
+      }
+    }
     get(obj: Vector<T>, prop: any) {
       if (typeof prop === "symbol") {
         return obj[prop];
       }
-      var index = Number.parseInt(prop);
-      if (Number.isInteger(index)) {
-        if (index < 0 || index >= obj.length) {
-          throw new Error("Vector: get out-of-bounds");
-        }
-      }
+      this.isOutBounds(obj, prop);
       return obj[prop];
     }
     set(obj: Vector<T>, prop: any, value: T) {
@@ -42,7 +45,7 @@ if (flag || fastVector == undefined) {
       let index = Number.parseInt(prop);
       if (Number.isInteger(index)) {
         if (index < 0 || index > obj.length) {
-          throw new Error("Vector: set out-of-bounds");
+          throw new RangeError("the index is out-of-bounds");
         } else {
           obj[index] = value;
           return true;
@@ -51,11 +54,9 @@ if (flag || fastVector == undefined) {
       return false;
     }
     deleteProperty(obj: Vector<T>, prop: any) {
-      var index = Number.parseInt(prop);
-      if (Number.isInteger(index)) {
-        if (index < 0 || index >= obj.length) {
-          throw new Error("vector: deleteProperty out-of-bounds");
-        }
+      this.isOutBounds(obj, prop);
+      let index = Number.parseInt(prop);
+      if (index >= 0 && index < obj.length && Number.isInteger(index)) {
         obj.removeByIndex(index);
         return true;
       }
@@ -66,7 +67,7 @@ if (flag || fastVector == undefined) {
     }
     ownKeys(obj: Vector<T>) {
       let keys = [];
-      for (var i = 0; i < obj.length; i++) {
+      for (let i = 0; i < obj.length; i++) {
         keys.push(i.toString());
       }
       return keys;
@@ -75,17 +76,15 @@ if (flag || fastVector == undefined) {
       return true;
     }
     getOwnPropertyDescriptor(obj: Vector<T>, prop: any) {
-      var index = Number.parseInt(prop);
-      if (Number.isInteger(index)) {
-        if (index < 0 || index >= obj.length) {
-          throw new Error("Vector: getOwnPropertyDescriptor out-of-bounds");
-        }
+      this.isOutBounds(obj, prop);
+      let index = Number.parseInt(prop);
+      if (index >= 0 && index < obj.length && Number.isInteger(index)) {
         return Object.getOwnPropertyDescriptor(obj, prop);
       }
       return;
     }
     setPrototypeOf(obj: any, prop: any): any {
-      throw new Error("Can setPrototype on Vector Object");  
+      throw new RangeError("Can setPrototype on Vector Object");  
     }
   }
   interface IterableIterator<T> {
@@ -111,6 +110,9 @@ if (flag || fastVector == undefined) {
       return true;
     }
     insert(element: T, index: number): void {
+      if (index < 0 || index >= this.elementNum) {
+        throw new RangeError("the index is out-of-bounds");
+      }
       if (this.isFull()) {
         this.resize();
       }
@@ -140,12 +142,22 @@ if (flag || fastVector == undefined) {
       return -1;
     }
     getFirstElement(): T {
+      if (this.isEmpty()) {
+        return undefined;
+      }
       return this[0];
     }
-    set(index: number, element: T): void {
+    set(index: number, element: T): T {
+      if (index < 0 || index >= this.elementNum) {
+        throw new RangeError("the index is out-of-bounds");
+      }
       this[index] = element;
+      return this[index];
     }
     removeByIndex(index: number): T {
+      if (index < 0 || index >= this.elementNum) {
+        throw new RangeError("the index is out-of-bounds");
+      }
       let result = this[index];
       for (let i = index; i < this.elementNum - 1; i++) {
         this[i] = this[i + 1];
@@ -165,6 +177,9 @@ if (flag || fastVector == undefined) {
       return false;
     }
     getLastElement(): T {
+      if (this.isEmpty()) {
+        return undefined;
+      }
       return this[this.elementNum - 1];
     }
     getLastIndexOf(element: T): number {
@@ -200,9 +215,12 @@ if (flag || fastVector == undefined) {
     }
     removeByRange(fromIndex: number, toIndex: number): void {
       if (fromIndex >= toIndex) {
-        throw new Error(`fromIndex cannot be less than or equal to toIndex`);
+        throw new RangeError(`the fromIndex cannot be less than or equal to toIndex`);
       }
-      toIndex = toIndex >= this.length - 1 ? this.length - 1 : toIndex;
+      if (fromIndex >= this.elementNum || fromIndex < 0 || toIndex < 0) {
+        throw new RangeError(`the fromIndex or the toIndex is out-of-bounds`);
+      }
+      toIndex = toIndex >= this.elementNum ? this.elementNum : toIndex;
       let i = fromIndex;
       for (let j = toIndex; j < this.elementNum; j++) {
         this[i] = this[j];
@@ -211,6 +229,9 @@ if (flag || fastVector == undefined) {
       this.elementNum -= toIndex - fromIndex;
     }
     setLength(newSize: number): void {
+      if (newSize < 0) {
+        throw new RangeError(`An incorrect size was set`);
+      }
       this.elementNum = newSize;
     }
     replaceAllElements(callbackfn: (value: T, index?: number, vector?: Vector<T>) => T,
@@ -239,7 +260,7 @@ if (flag || fastVector == undefined) {
           }
         }
       } else {
-        for (var i = 0; i < this.length - 1; i++) {
+        for (let i = 0; i < this.elementNum - 1; i++) {
           for (let j = 0; j < this.elementNum - 1 - i; j++) {
             if (this.asciSort(this[j], this[j + 1])) {
               isSort = false;
@@ -270,10 +291,10 @@ if (flag || fastVector == undefined) {
     }
     subVector(fromIndex: number, toIndex: number): Vector<T> {
       if (fromIndex >= toIndex) {
-        throw new Error(`fromIndex cannot be less than or equal to toIndex`);
+        throw new RangeError(`the fromIndex cannot be less than or equal to toIndex`);
       }
       if (fromIndex >= this.elementNum || fromIndex < 0 || toIndex < 0) {
-        throw new Error(`fromIndex or toIndex is out-of-bounds`);
+        throw new RangeError(`the fromIndex or the toIndex is out-of-bounds`);
       }
       toIndex = toIndex >= this.elementNum - 1 ? this.elementNum - 1 : toIndex;
       let vector = new Vector<T>();
@@ -334,8 +355,8 @@ if (flag || fastVector == undefined) {
       let vector = this;
       return {
         next: function () {
-          var done = count >= vector.elementNum;
-          var value = !done ? vector[count++] : undefined;
+          let done = count >= vector.elementNum;
+          let value = !done ? vector[count++] : undefined;
           return {
             done: done,
             value: value,
