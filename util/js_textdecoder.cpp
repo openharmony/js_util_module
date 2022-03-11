@@ -88,7 +88,7 @@ namespace OHOS::Util {
             return nullptr;
         }
         UChar *target = arr;
-        size_t tarStartPos = reinterpret_cast<intptr_t>(arr);
+        size_t tarStartPos = reinterpret_cast<uintptr_t>(arr);
         ucnv_toUnicode(GetConverterPtr(), &target, target + len, &source, source + length, nullptr, flush, &codeFlag);
         size_t resultLength = 0;
         bool omitInitialBom = false;
@@ -148,7 +148,7 @@ namespace OHOS::Util {
 
     size_t TextDecoder::GetMinByteSize() const
     {
-        if (!tranTool_) {
+        if (tranTool_ == nullptr) {
             return 0;
         }
         size_t res = ucnv_getMinCharSize(tranTool_.get());
@@ -157,7 +157,7 @@ namespace OHOS::Util {
 
     void TextDecoder::Reset() const
     {
-        if (!tranTool_) {
+        if (tranTool_ == nullptr) {
             return;
         }
         ucnv_reset(tranTool_.get());
@@ -174,12 +174,12 @@ namespace OHOS::Util {
     void TextDecoder::SetBomFlag(const UChar *arr, const UErrorCode codeFlag, const DecodeArr decArr,
                                  size_t &rstLen, bool &bomFlag)
     {
-        if (!arr) {
+        if (arr == nullptr) {
             return;
         }
         if (U_SUCCESS(codeFlag)) {
             if (decArr.limitLen > 0) {
-                rstLen = reinterpret_cast<intptr_t>(decArr.target) - decArr.tarStartPos;
+                rstLen = reinterpret_cast<uintptr_t>(decArr.target) - decArr.tarStartPos;
                 if (rstLen > 0 && IsUnicode() && !IsIgnoreBom() && !IsBomFlag()) {
                     bomFlag = (arr[0] == 0xFEFF) ? true : false;
                     label_ |= static_cast<uint32_t>(ConverterFlags::BOM_SEEN_FLG);

@@ -1023,11 +1023,7 @@ var result = proc.isWeakSet(new WeakSet());
 ```
 ## Related warehouse
 
-
-
 [js_util_module subsystem](base/compileruntime/js_util_module-readme.md)
-
-[base/compileruntime/js_util_module/](base/compileruntime/js_util_module-readme.md)
 
 ## License
 

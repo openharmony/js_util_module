@@ -49,7 +49,7 @@ namespace OHOS::Util {
         NAPI_CALL(env, napi_get_typedarray_info(env, src, &type, &length, &resultData, &resultBuffer, &byteOffset));
         inputEncode_ = static_cast<const unsigned char*>(resultData) + byteOffset;
         unsigned char *rets = EncodeAchieve(inputEncode_, length);
-        if (!rets) {
+        if (rets == nullptr) {
             napi_throw_error(env, "-1", "encode input is null");
         }
         void *data = nullptr;
@@ -78,7 +78,7 @@ namespace OHOS::Util {
         NAPI_CALL(env, napi_get_typedarray_info(env, src, &type, &length, &resultData, &resultBuffer, &byteOffset));
         inputEncode_ = static_cast<const unsigned char*>(resultData) + byteOffset;
         unsigned char *ret = EncodeAchieve(inputEncode_, length);
-        if (!ret) {
+        if (ret == nullptr) {
             napi_throw_error(env, "-1", "encodeToString input is null");
         }
         const char *encString = reinterpret_cast<const char*>(ret);
@@ -110,7 +110,7 @@ namespace OHOS::Util {
             HILOG_ERROR("outputLen is error");
             return nullptr;
         }
-        if (!ret) {
+        if (ret == nullptr) {
             return ret;
         }
         while (inp < inputLen) {
@@ -216,7 +216,7 @@ namespace OHOS::Util {
         } else {
             napi_throw_error(env, "-2", "retLen is error !");
         }
-        if (!retDecode) {
+        if (retDecode == nullptr) {
             return retDecode;
         }
         while (inp < (inputLen - equalCount)) {
@@ -371,7 +371,7 @@ namespace OHOS::Util {
         } else {
             napi_throw_error(encodeInfo->env, "-2", "outputLen is error !");
         }
-        if (!ret) {
+        if (ret == nullptr) {
             return ret;
         }
         while (inp < inputLen) {
@@ -410,7 +410,8 @@ namespace OHOS::Util {
         napi_value arrayBuffer = nullptr;
         size_t bufferSize = stdEncodeInfo->soutputLen;
         napi_create_arraybuffer(env, bufferSize, &data, &arrayBuffer);
-        if (memcpy_s(data, bufferSize, reinterpret_cast<const void*>(stdEncodeInfo->sinputEncoding), bufferSize) != EOK) {
+        if (memcpy_s(data, bufferSize,
+            reinterpret_cast<const void*>(stdEncodeInfo->sinputEncoding), bufferSize) != EOK) {
             HILOG_ERROR("copy ret to arraybuffer error");
             napi_delete_async_work(env, stdEncodeInfo->worker);
             return;
@@ -584,7 +585,8 @@ namespace OHOS::Util {
         napi_value arrayBuffer = nullptr;
         size_t bufferSize = stdDecodeInfo->decodeOutLen;
         napi_create_arraybuffer(env, bufferSize, &data, &arrayBuffer);
-        if (memcpy_s(data, bufferSize, reinterpret_cast<const void*>(stdDecodeInfo->sinputDecoding), bufferSize) != EOK) {
+        if (memcpy_s(data, bufferSize,
+            reinterpret_cast<const void*>(stdDecodeInfo->sinputDecoding), bufferSize) != EOK) {
             HILOG_ERROR("copy ret to arraybuffer error");
             napi_delete_async_work(env, stdDecodeInfo->worker);
             return;
