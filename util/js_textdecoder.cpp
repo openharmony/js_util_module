@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -78,7 +78,7 @@ namespace OHOS::Util {
         UChar *arr = nullptr;
         if (limit > 0) {
             arr = new UChar[limit + 1];
-            if (memset_s(arr, len + sizeof(UChar), 0, len + sizeof(UChar)) != 0) {
+            if (memset_s(arr, len + sizeof(UChar), 0, len + sizeof(UChar)) != EOK) {
                 HILOG_ERROR("decode arr memset_s failed");
                 FreedMemory(arr);
                 return nullptr;
@@ -148,7 +148,7 @@ namespace OHOS::Util {
 
     size_t TextDecoder::GetMinByteSize() const
     {
-        if (tranTool_ == nullptr) {
+        if (!tranTool_) {
             return 0;
         }
         size_t res = ucnv_getMinCharSize(tranTool_.get());
@@ -157,7 +157,7 @@ namespace OHOS::Util {
 
     void TextDecoder::Reset() const
     {
-        if (tranTool_ == nullptr) {
+        if (!tranTool_) {
             return;
         }
         ucnv_reset(tranTool_.get());
@@ -174,7 +174,7 @@ namespace OHOS::Util {
     void TextDecoder::SetBomFlag(const UChar *arr, const UErrorCode codeFlag, const DecodeArr decArr,
                                  size_t &rstLen, bool &bomFlag)
     {
-        if (arr == nullptr) {
+        if (!arr) {
             return;
         }
         if (U_SUCCESS(codeFlag)) {

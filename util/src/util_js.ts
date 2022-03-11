@@ -30,13 +30,13 @@ interface Fn{
 }
 declare function requireInternal(s : string) : HelpUtil;
 const helpUtil = requireInternal('util');
-let TextEncoder = helpUtil.TextEncoder;
-let TextDecoder = helpUtil.TextDecoder;
-let Base64 = helpUtil.Base64;
-let Types = helpUtil.Types;
+var TextEncoder = helpUtil.TextEncoder;
+var TextDecoder = helpUtil.TextDecoder;
+var Base64 = helpUtil.Base64;
+var Types = helpUtil.Types;
 function switchLittleObject(enter : string, obj : Object, count : number) : string | Object
 {
-    var str : string = '';
+    let str : string = '';
     if (obj === null) {
         str += obj;
     } else if (obj instanceof Array) {
@@ -69,7 +69,7 @@ function switchLittleObject(enter : string, obj : Object, count : number) : stri
 
 function switchLittleValue(enter : string, protoName : string, obj : Object, count : number) : string
 {
-    var str : string = '';
+    let str : string = '';
     if (obj[protoName] === null) {
         str += protoName + ': null,' + enter;
     } else if (obj[protoName] instanceof Array) {
@@ -84,7 +84,7 @@ function switchLittleValue(enter : string, protoName : string, obj : Object, cou
             str += switchLittleObject(enter + '  ', obj[protoName], count + 1) + ',' + enter;
         }
     } else if (typeof obj[protoName] === 'function') {
-        var space : string= enter;
+        let space : string= enter;
         if (obj[protoName].name !== '') {
             str += obj[protoName].name + ':' + space;
         }
@@ -106,11 +106,11 @@ function switchLittleValue(enter : string, protoName : string, obj : Object, cou
 
 function arrayToString(enter : string, arr : Array<string | number | Fn>, count : number) : string
 {
-    var str : string = '';
+    let str : string = '';
     if (!arr.length) {
         return '';
     }
-    var arrayEnter : string = ', ';
+    let arrayEnter : string = ', ';
     for (let k in arr) {
         if (arr[k] !== null && (typeof arr[k] === 'function' || typeof arr[k] === 'object') && count <= 2) {
             arrayEnter += enter;
@@ -124,9 +124,9 @@ function arrayToString(enter : string, arr : Array<string | number | Fn>, count 
             str += switchLittleObject(enter + '  ', i, count + 1);
             str += arrayEnter;
         } else if (typeof i === 'function') {
-            var space : string = enter;
+            let space : string = enter;
             space += '  ';
-            var end : string = '';
+            let end : string = '';
             if (i.name !== '') {
                 str += '{ [Function: ' + i.name + ']' + space;
                 end = i.name + ' { [constructor]: [Circular] } }' + arrayEnter;
@@ -147,7 +147,7 @@ function arrayToString(enter : string, arr : Array<string | number | Fn>, count 
 
 function switchBigObject(enter : string, obj : Object, count : number) : string | Object
 {
-    var str : string = '';
+    let str : string = '';
     if (obj === null) {
         str += obj;
     } else if (obj instanceof Array) {
@@ -177,7 +177,7 @@ function switchBigObject(enter : string, obj : Object, count : number) : string 
 
 function switchBigValue(enter : string, protoName : string, obj : Object, count : number) : string
 {
-    var str : string = '';
+    let str : string = '';
     if (obj[protoName] === null) {
         str += protoName + ': null,' + enter;
     } else if (obj[protoName] instanceof Array) {
@@ -206,12 +206,12 @@ function switchBigValue(enter : string, protoName : string, obj : Object, count 
 }
 function arrayToBigString(enter : string, arr : Array<string | number | Fn>, count : number) : string
 {
-    var str : string = '';
+    let str : string = '';
     if (!arr.length) {
         return '';
     }
 
-    var arrayEnter = ', ';
+    let arrayEnter = ', ';
     for (let i of arr) {
         if (i !== null && (typeof i === 'object') && count <= 2) {
             arrayEnter += enter;
@@ -239,7 +239,7 @@ function arrayToBigString(enter : string, arr : Array<string | number | Fn>, cou
 }
 function switchIntValue(value : Object | symbol) : string
 {
-    var str : string = '';
+    let str : string = '';
     if (value === '') {
         str += 'NaN';
     } else if (typeof value === 'bigint') {
@@ -271,7 +271,7 @@ function switchIntValue(value : Object | symbol) : string
 }
 function switchFloatValue(value : Object | symbol) : string
 {
-    var str : string = '';
+    let str : string = '';
     if (value === '') {
         str += 'NaN';
     } else if (typeof value === 'symbol') {
@@ -304,7 +304,7 @@ function switchFloatValue(value : Object | symbol) : string
 
 function switchNumberValue(value : Object | symbol) : string
 {
-    var str : string = '';
+    let str : string = '';
     if (value === '') {
         str += '0';
     } else if (typeof value === 'symbol') {
@@ -329,7 +329,7 @@ function switchNumberValue(value : Object | symbol) : string
 
 function switchStringValue(value : Object | symbol) : string
 {
-    var str : string = '';
+    let str : string = '';
     if (typeof value === 'undefined') {
         str += 'undefined';
     } else if (typeof value === 'object') {
@@ -349,13 +349,13 @@ function switchStringValue(value : Object | symbol) : string
 //           ...valueString : Array<string | number | Fn | object>) : string;
 function printf(formatString : Array<string | number | Fn>, ...valueString : Array<Object>) : string
 {
-    var formats : string = helpUtil.dealwithformatstring(formatString);
-    var arr : Array<Object>= [];
+    let formats : string = helpUtil.dealwithformatstring(formatString);
+    let arr : Array<Object>= [];
     arr = formats.split(' ');
-    var switchString : Array<Object>= [];
-    var valueLength : number = valueString.length;
-    var arrLength : number = arr.length;
-    var i : number= 0;
+    let switchString : Array<Object>= [];
+    let valueLength : number = valueString.length;
+    let arrLength : number = arr.length;
+    let i : number= 0;
     for (let sub of valueString) {
         if (i >= arrLength) {
             break;
@@ -383,19 +383,19 @@ function printf(formatString : Array<string | number | Fn>, ...valueString : Arr
         switchString.push(valueString[i].toString());
         i++;
     }
-    var helpUtilString : string = helpUtil.printf(formatString, ...switchString);
+    let helpUtilString : string = helpUtil.printf(formatString, ...switchString);
     return helpUtilString;
 }
 
 function getErrorString(errnum : number) : string
 {
-    var errorString : string = helpUtil.getErrorString(errnum);
+    let errorString : string = helpUtil.getErrorString(errnum);
     return errorString;
 }
 
 function createExternalType() : Object
 {
-    var externalType : Object = helpUtil.createExternalType();
+    let externalType : Object = helpUtil.createExternalType();
     return externalType;
 }
 
@@ -471,7 +471,7 @@ class LruBuffer
 
     public constructor(capacity?: number)
     {
-        if(capacity !== undefined) {
+        if (capacity !== undefined) {
             if (capacity <= 0 || capacity%1 !== 0 || capacity > this.maxNumber) {
                 throw new Error('data error');
             }
@@ -482,7 +482,7 @@ class LruBuffer
 
     public updateCapacity(newCapacity : number) : void
     {
-        if (newCapacity <= 0 || newCapacity%1 !== 0 || newCapacity > this.maxNumber) {
+        if (newCapacity <= 0 || newCapacity % 1 !== 0 || newCapacity > this.maxNumber) {
             throw new Error('data error');
         } else if (this.cache.size >newCapacity) {
             this.changeCapacity(newCapacity);
@@ -695,7 +695,7 @@ class RationalNumber
     {
         num = den < 0 ?  num * (-1) : num;
         den = den < 0 ?  den * (-1) : den;
-        if (den == 0) {
+        if (den === 0) {
             if (num > 0) {
                 this.mnum = 1;
                 this.mden = 0;
@@ -706,13 +706,13 @@ class RationalNumber
                 this.mnum = 0;
                 this.mden = 0;
             }
-        } else if (num == 0) {
+        } else if (num === 0) {
             this.mnum = 0;
             this.mden = 1;
         } else {
             let gnum : number = 0;
             gnum = this.getCommonDivisor(num, den);
-            if (gnum != 0) {
+            if (gnum !== 0) {
                 this.mnum = num / gnum;
                 this.mden = den / gnum;
             }
@@ -721,10 +721,10 @@ class RationalNumber
 
     public createRationalFromString(str : string): RationalNumber
     {
-        if (str == null) {
+        if (str === null) {
             throw new Error('string invalid!');
         }
-        if (str == 'NaN') {
+        if (str === 'NaN') {
             return new RationalNumber(0, 0);
         }
         let colon : number = str.indexOf(':');
@@ -742,15 +742,15 @@ class RationalNumber
 
     public compareTo(other : RationalNumber) : number
     {
-        if (this.mnum == other.mnum && this.mden == other.mden) {
+        if (this.mnum === other.mnum && this.mden === other.mden) {
             return 0;
-        } else if (this.mnum == 0 && this.mden == 0) {
+        } else if (this.mnum === 0 && this.mden === 0) {
             return 1;
-        } else if ((other.mnum == 0) && (other.mden == 0)) {
+        } else if ((other.mnum === 0) && (other.mden === 0)) {
             return -1;
-        } else if ((this.mden == 0 && this.mnum > 0) || (other.mden == 0 && other.mnum < 0)) {
+        } else if ((this.mden === 0 && this.mnum > 0) || (other.mden === 0 && other.mnum < 0)) {
             return 1;
-        } else if ((this.mden == 0 && this.mnum < 0) || (other.mden == 0 && other.mnum > 0)) {
+        } else if ((this.mden === 0 && this.mnum < 0) || (other.mden === 0 && other.mnum > 0)) {
             return -1;
         }
         let thisnum : number = this.mnum * other.mden;
@@ -771,15 +771,15 @@ class RationalNumber
         }
         let thisnum : number = this.mnum * obj.mden;
         let objnum : number = obj.mnum * this.mden;
-        if (this.mnum == obj.mnum && this.mden == obj.mden) {
+        if (this.mnum === obj.mnum && this.mden === obj.mden) {
             return true;
-        } else if ((thisnum == objnum) && (this.mnum != 0 && this.mden != 0) && (obj.mnum != 0 && obj.mden != 0)) {
+        } else if ((thisnum === objnum) && (this.mnum !== 0 && this.mden !== 0) && (obj.mnum !== 0 && obj.mden !== 0)) {
             return true;
-        } else if ((this.mnum == 0 && this.mden != 0) && (obj.mnum == 0 && obj.mden != 0)) {
+        } else if ((this.mnum === 0 && this.mden !== 0) && (obj.mnum === 0 && obj.mden !== 0)) {
             return true;
-        } else if ((this.mnum > 0 && this.mden == 0) && (obj.mnum > 0 && obj.mden == 0)) {
+        } else if ((this.mnum > 0 && this.mden === 0) && (obj.mnum > 0 && obj.mden === 0)) {
             return true;
-        } else if ((this.mnum < 0 && this.mden == 0) && (obj.mnum < 0 && obj.mden == 0)) {
+        } else if ((this.mnum < 0 && this.mden === 0) && (obj.mnum < 0 && obj.mden === 0)) {
             return true;
         } else {
             return false;
@@ -788,11 +788,11 @@ class RationalNumber
 
     public valueOf() : number
     {
-        if (this.mnum > 0 && this.mden == 0) {
+        if (this.mnum > 0 && this.mden === 0) {
             return Number.POSITIVE_INFINITY;
-        } else if (this.mnum < 0 && this.mden == 0) {
+        } else if (this.mnum < 0 && this.mden === 0) {
             return Number.NEGATIVE_INFINITY;
-        } else if ((this.mnum == 0) && (this.mden == 0)) {
+        } else if ((this.mnum === 0) && (this.mden === 0)) {
             return Number.NaN;
         } else {
             return this.mnum / this.mden;
@@ -801,8 +801,8 @@ class RationalNumber
 
     public getCommonDivisor(number1 : number, number2 : number) : number
     {
-        if (number1 == 0 || number2 == 0) {
-            throw new Error("Parameter cannot be zero!");
+        if (number1 === 0 || number2 === 0) {
+            throw new Error('Parameter cannot be zero!');
         }
         let temp : number = 0;
         if (number1 < number2) {
@@ -810,7 +810,7 @@ class RationalNumber
             number1 = number2;
             number2 = temp;
         }
-        while (number1 % number2 != 0) {
+        while (number1 % number2 !== 0) {
             temp = number1 % number2;
             number1 = number2;
             number2 = temp;
@@ -830,28 +830,28 @@ class RationalNumber
 
     public isFinite() : boolean
     {
-        return this.mden != 0;
+        return this.mden !== 0;
     }
 
     public isNaN() : boolean
     {
-        return this.mnum == 0 && this.mden == 0;
+        return this.mnum === 0 && this.mden === 0;
     }
 
     public isZero() : boolean
     {
-        return this.mnum == 0 && this.mden != 0;
+        return this.mnum === 0 && this.mden !== 0;
     }
 
     public toString() : string
     {
         let buf : string;
-        if (this.mnum == 0 && this.mden == 0) {
-            buf = "NaN";
-        } else if (this.mnum > 0 && this.mden == 0) {
-            buf = "Infinity";
-        } else if (this.mnum < 0 && this.mden == 0) {
-            buf = "-Infinity";
+        if (this.mnum === 0 && this.mden === 0) {
+            buf = 'NaN';
+        } else if (this.mnum > 0 && this.mden === 0) {
+            buf = 'Infinity';
+        } else if (this.mnum < 0 && this.mden === 0) {
+            buf = '-Infinity';
         } else {
             buf = String(this.mnum) + '/' + String(this.mden);
         }
@@ -898,7 +898,7 @@ class Scope {
         let resLower: boolean;
         let resUpper: boolean;
         this.checkNull(x, 'value must not be null');
-        if(x instanceof Scope) {
+        if (x instanceof Scope) {
             resLower= x._lowerLimit.compareTo(this._lowerLimit);
             resUpper= this._upperLimit.compareTo(x._upperLimit);
         } else {
@@ -927,8 +927,7 @@ class Scope {
         let reUpper: boolean;
         let mLower: ScopeType;
         let mUpper: ScopeType;
-        if(y)
-        {
+        if (y) {
             this.checkNull(x, 'lower limit must not be null');
             this.checkNull(y, 'upper limit must not be null');
             reLower = this._lowerLimit.compareTo(x);
@@ -984,7 +983,7 @@ class Scope {
 
         } else {
             this.checkNull(x, 'lower limit must not be null');
-            this.checkNull(y, "upper limit must not be null");
+            this.checkNull(y, 'upper limit must not be null');
             reLower = x.compareTo(this._lowerLimit);
             reUpper = this._upperLimit.compareTo(y);
             if (reLower && reUpper) {
@@ -1003,7 +1002,7 @@ class Scope {
     }
 
     public checkNull(o: ScopeType, str: string): void {
-        if(o == null) {
+        if (o === null) {
             throw new Error(str);
         }
     }

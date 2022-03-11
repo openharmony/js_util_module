@@ -276,30 +276,30 @@ var obj = textEncoder.encodeInto('abc', dest);
 4.textDecoder()
 ```
 import util from '@ohos.util'
-var textDecoder = new util.textDecoder("utf-16be", {fatal : ture, ignoreBOM : false});
+var textDecoder = new util.textDecoder("utf-16be", {fatal : true, ignoreBOM : false});
 ```
 5.readonly encoding()
 ```
 import util from '@ohos.util'
-var textDecoder = new util.textDecoder("utf-16be", {fatal : ture, ignoreBOM : false});
+var textDecoder = new util.textDecoder("utf-16be", {fatal : true, ignoreBOM : false});
 var getEncoding = textDecoder.encoding();
 ```
 6.readonly fatal()
 ```
 import util from '@ohos.util'
-var textDecoder = new util.textDecoder("utf-16be", {fatal : ture, ignoreBOM : false});
+var textDecoder = new util.textDecoder("utf-16be", {fatal : true, ignoreBOM : false});
 var fatalStr = textDecoder.fatal();
 ```
 7.readonly ignoreBOM()
 ```
 import util from '@ohos.util'
-var textDecoder = new util.textDecoder("utf-16be", {fatal : ture, ignoreBOM : false});
+var textDecoder = new util.textDecoder("utf-16be", {fatal : true, ignoreBOM : false});
 var ignoreBom = textDecoder.ignoreBOM();
 ```
 8.decode()
 ```
 import util from '@ohos.util'
-var textDecoder = new util.textDecoder("utf-16be", {fatal : ture, ignoreBOM : false});
+var textDecoder = new util.textDecoder("utf-16be", {fatal : true, ignoreBOM : false});
 var result = textDecoder.decode(input, {stream : true});
 ```
 9.printf()

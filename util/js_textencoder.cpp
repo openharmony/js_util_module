@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -41,7 +41,7 @@ namespace OHOS::Util {
         NAPI_CALL(env_, napi_get_value_string_utf8(env_, src, buffer, 0, &bufferSize));
         NAPI_ASSERT(env_, bufferSize > 0, "bufferSize == 0");
         buffer = new char[bufferSize + 1];
-        if (memset_s(buffer, bufferSize + 1, 0, bufferSize + 1) != 0) {
+        if (memset_s(buffer, bufferSize + 1, 0, bufferSize + 1) != EOK) {
             HILOG_ERROR("buffer memset error");
             delete []buffer;
             return nullptr;
@@ -51,14 +51,14 @@ namespace OHOS::Util {
         void *data = nullptr;
         napi_value arrayBuffer = nullptr;
         napi_create_arraybuffer(env_, bufferSize, &data, &arrayBuffer);
-        if (memcpy_s(data, bufferSize, reinterpret_cast<void*>(buffer), bufferSize) != 0) {
+        if (memcpy_s(data, bufferSize, reinterpret_cast<void*>(buffer), bufferSize) != EOK) {
             HILOG_ERROR("copy buffer to arraybuffer error");
             delete []buffer;
             return nullptr;
         }
 
         delete []buffer;
-
+        buffer = nullptr;
         napi_value result = nullptr;
         NAPI_CALL(env_, napi_create_typedarray(env_, napi_uint8_array, bufferSize, arrayBuffer, 0, &result));
 
