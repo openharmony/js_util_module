@@ -276,30 +276,30 @@ var obj = textEncoder.encodeInto('abc', dest);
 4.textDecoder()
 ```
 import util from '@ohos.util'
-var textDecoder = new util.textDecoder("utf-16be", {fatal : ture, ignoreBOM : false});
+var textDecoder = new util.textDecoder("utf-16be", {fatal : true, ignoreBOM : false});
 ```
 5.readonly encoding()
 ```
 import util from '@ohos.util'
-var textDecoder = new util.textDecoder("utf-16be", {fatal : ture, ignoreBOM : false});
+var textDecoder = new util.textDecoder("utf-16be", {fatal : true, ignoreBOM : false});
 var getEncoding = textDecoder.encoding();
 ```
 6.readonly fatal()
 ```
 import util from '@ohos.util'
-var textDecoder = new util.textDecoder("utf-16be", {fatal : ture, ignoreBOM : false});
+var textDecoder = new util.textDecoder("utf-16be", {fatal : true, ignoreBOM : false});
 var fatalStr = textDecoder.fatal();
 ```
 7.readonly ignoreBOM()
 ```
 import util from '@ohos.util'
-var textDecoder = new util.textDecoder("utf-16be", {fatal : ture, ignoreBOM : false});
+var textDecoder = new util.textDecoder("utf-16be", {fatal : true, ignoreBOM : false});
 var ignoreBom = textDecoder.ignoreBOM();
 ```
 8.decode()
 ```
 import util from '@ohos.util'
-var textDecoder = new util.textDecoder("utf-16be", {fatal : ture, ignoreBOM : false});
+var textDecoder = new util.textDecoder("utf-16be", {fatal : true, ignoreBOM : false});
 var result = textDecoder.decode(input, {stream : true});
 ```
 9.printf()
@@ -1024,11 +1024,7 @@ var result = proc.isWeakSet(new WeakSet());
 ```
 ## 相关仓
 
-
-
-[js_util_module子系统](https://gitee.com/OHOS_STD/js_util_module)
-
-[base/compileruntime/js_util_module/](base/compileruntime/js_util_module-readme.md)
+[js_util_module子系统](base/compileruntime/js_util_module-readme_zh.md)
 
 ## 许可证
 
