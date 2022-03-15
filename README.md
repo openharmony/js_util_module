@@ -9,7 +9,7 @@
 -   [Related warehouse](#Related warehouse)
 
 ## Introduction
-The interface of util is used for character Textencoder, TextDecoder and HelpFunction module.The TextEncoder represents a text encoder that accepts a string as input, encodes it in UTF-8 format, and outputs UTF-8 byte stream. The TextDecoder interface represents a text decoder. The decoder takes the byte stream as the input and outputs the Stirng string. HelpFunction is mainly used to callback and promise functions, write and output error codes, and format class strings.
+The interface of util is used for character Textencoder, TextDecoder and HelpFunction module.The TextEncoder represents a text encoder that accepts a string as input, encodes it in UTF-8 format, and outputs UTF-8 byte stream. The TextDecoder interface represents a text decoder. The decoder takes the byte stream as the input and outputs the String string. HelpFunction is mainly used to callback and promise functions, write and output error codes, and format class strings.
 Encodes all bytes from the specified u8 array into a newly-allocated u8 array using the Base64 encoding scheme or Encodes the specified byte array into a String using the Base64 encoding scheme.Decodes a Base64 encoded String or input u8 array into a newly-allocated u8 array using the Base64 encoding scheme.The rational number is mainly to compare rational numbers and obtain the numerator and denominator.The LruBuffer algorithm replaces the least used data with new data when the buffer space is insufficient. The algorithm derives from the need to access resources: recently accessed data can be Will visit again in the near future. The least accessed data is the least valuable data that should be kicked out of the cache space. The Scope interface is used to describe the valid range of a field. The constructor for the Scope instance is used to create objects with specified lower and upper bounds and require that these objects be comparable.
 ## 目录
 
@@ -135,8 +135,8 @@ base/compileruntime/js_util_module/
 | Interface name | Description |
 | -------- | -------- |
 | readonly encoding : string | In the TextEncoder module, get the encoding format, only UTF-8 is supported. |
-| encode(input : string) : Uint8Array | Input stirng string, encode and output UTF-8 byte stream. |
-| encodeInto(input : string, dest : Uint8Array) : {read : number, written : number} | Enter the stirng string, dest represents the storage location after encoding, and returns an object, read represents the number of characters that have been encoded,and written represents the size of bytes occupied by the encoded characters. |
+| encode(input : string) : Uint8Array | Input string string, encode and output UTF-8 byte stream. |
+| encodeInto(input : string, dest : Uint8Array) : {read : number, written : number} | Enter the string string, dest represents the storage location after encoding, and returns an object, read represents the number of characters that have been encoded,and written represents the size of bytes occupied by the encoded characters. |
 | constructor(encoding? : string, options? : {fatal? : boolean, ignoreBOM? : boolean}) | Constructor, the first parameter encoding indicates the format of decoding.The second parameter represents some attributes.Fatal in the attribute indicates whether an exception is thrown, and ignoreBOM indicates whether to ignore the bom flag. |
 | readonly encoding : string | In the TextDecoder module, get the set decoding format. |
 | readonly fatal : boolean | Get the setting that throws the exception. |
@@ -277,30 +277,30 @@ var obj = textEncoder.encodeInto('abc', dest);
 4.textDecoder()
 ```
 import util from '@ohos.util'
-var textDecoder = new util.textDecoder("utf-16be", {fatal : ture, ignoreBOM : false});
+var textDecoder = new util.textDecoder("utf-16be", {fatal : true, ignoreBOM : false});
 ```
 5.readonly encoding()
 ```
 import util from '@ohos.util'
-var textDecoder = new util.textDecoder("utf-16be", {fatal : ture, ignoreBOM : false});
+var textDecoder = new util.textDecoder("utf-16be", {fatal : true, ignoreBOM : false});
 var getEncoding = textDecoder.encoding();
 ```
 6.readonly fatal()
 ```
 import util from '@ohos.util'
-var textDecoder = new util.textDecoder("utf-16be", {fatal : ture, ignoreBOM : false});
+var textDecoder = new util.textDecoder("utf-16be", {fatal : true, ignoreBOM : false});
 var fatalStr = textDecoder.fatal();
 ```
 7.readonly ignoreBOM()
 ```
 import util from '@ohos.util'
-var textDecoder = new util.textDecoder("utf-16be", {fatal : ture, ignoreBOM : false});
+var textDecoder = new util.textDecoder("utf-16be", {fatal : true, ignoreBOM : false});
 var ignoreBom = textDecoder.ignoreBOM();
 ```
 8.decode()
 ```
 import util from '@ohos.util'
-var textDecoder = new util.textDecoder("utf-16be", {fatal : ture, ignoreBOM : false});
+var textDecoder = new util.textDecoder("utf-16be", {fatal : true, ignoreBOM : false});
 var result = textDecoder.decode(input, {stream : true});
 ```
 9.printf()
@@ -1023,11 +1023,7 @@ var result = proc.isWeakSet(new WeakSet());
 ```
 ## Related warehouse
 
-
-
-[js_util_module subsystem](https://gitee.com/OHOS_STD/js_util_module)
-
-[base/compileruntime/js_util_module/](base/compileruntime/js_util_module-readme.md)
+[js_util_module subsystem](base/compileruntime/js_util_module-readme.md)
 
 ## License
 
