@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -78,7 +78,7 @@ namespace OHOS::Util {
         UChar *arr = nullptr;
         if (limit > 0) {
             arr = new UChar[limit + 1];
-            if (memset_s(arr, len + sizeof(UChar), 0, len + sizeof(UChar)) != 0) {
+            if (memset_s(arr, len + sizeof(UChar), 0, len + sizeof(UChar)) != EOK) {
                 HILOG_ERROR("decode arr memset_s failed");
                 FreedMemory(arr);
                 return nullptr;
@@ -88,7 +88,7 @@ namespace OHOS::Util {
             return nullptr;
         }
         UChar *target = arr;
-        size_t tarStartPos = reinterpret_cast<intptr_t>(arr);
+        size_t tarStartPos = reinterpret_cast<uintptr_t>(arr);
         ucnv_toUnicode(GetConverterPtr(), &target, target + len, &source, source + length, nullptr, flush, &codeFlag);
         size_t resultLength = 0;
         bool omitInitialBom = false;
@@ -179,7 +179,7 @@ namespace OHOS::Util {
         }
         if (U_SUCCESS(codeFlag)) {
             if (decArr.limitLen > 0) {
-                rstLen = reinterpret_cast<intptr_t>(decArr.target) - decArr.tarStartPos;
+                rstLen = reinterpret_cast<uintptr_t>(decArr.target) - decArr.tarStartPos;
                 if (rstLen > 0 && IsUnicode() && !IsIgnoreBom() && !IsBomFlag()) {
                     bomFlag = (arr[0] == 0xFEFF) ? true : false;
                     label_ |= static_cast<uint32_t>(ConverterFlags::BOM_SEEN_FLG);
