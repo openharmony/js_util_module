@@ -472,7 +472,7 @@ class LruBuffer
     public constructor(capacity?: number)
     {
         if (capacity !== undefined) {
-            if (capacity <= 0 || capacity%1 !== 0 || capacity > this.maxNumber) {
+            if (capacity <= 0 || capacity % 1 !== 0 || capacity > this.maxNumber) {
                 throw new Error('data error');
             }
             this.maxSize = capacity;
@@ -910,7 +910,6 @@ class Scope {
 
     public clamp(value: ScopeType): ScopeType {
         this.checkNull(value, 'value must not be null');
-
         if (!value.compareTo(this._lowerLimit)) {
             return this._lowerLimit;
         } else if (value.compareTo(this._upperLimit)) {

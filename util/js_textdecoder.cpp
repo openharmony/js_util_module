@@ -61,10 +61,10 @@ namespace OHOS::Util {
 
     napi_value TextDecoder::Decode(napi_value src, bool iflag)
     {
-        uint32_t flags = 0;
-        flags |= (iflag ? 0 : static_cast<uint32_t>(ConverterFlags::FLUSH_FLG));
-        UBool flush = ((flags & static_cast<uint32_t>(ConverterFlags::FLUSH_FLG))) ==
-        static_cast<uint32_t>(ConverterFlags::FLUSH_FLG);
+        uint8_t flags = 0;
+        flags |= (iflag ? 0 : static_cast<uint8_t>(ConverterFlags::FLUSH_FLG));
+        UBool flush = ((flags & static_cast<uint8_t>(ConverterFlags::FLUSH_FLG))) ==
+        static_cast<uint8_t>(ConverterFlags::FLUSH_FLG);
         napi_typedarray_type type;
         size_t length = 0;
         void *data1 = nullptr;
@@ -151,7 +151,7 @@ namespace OHOS::Util {
         if (tranTool_ == nullptr) {
             return 0;
         }
-        size_t res = ucnv_getMinCharSize(tranTool_.get());
+        size_t res = static_cast<size_t>(ucnv_getMinCharSize(tranTool_.get()));
         return res;
     }
 
