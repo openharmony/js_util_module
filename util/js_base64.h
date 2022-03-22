@@ -51,9 +51,12 @@ namespace OHOS::Util {
         SIXTEEN_FLG = 0x3F,
         XFF_FLG = 0xFF,
     };
+
     void FreeMemory(unsigned char *address);
+    void FreeMemory(char *address);
     unsigned char *EncodeAchieves(EncodeInfo *encodeInfo);
     unsigned char *DecodeAchieves(DecodeInfo *decodeInfo);
+
     class Base64 {
     public:
         explicit Base64(napi_env env);
@@ -70,8 +73,6 @@ namespace OHOS::Util {
         unsigned char *EncodeAchieve(const unsigned char *input, size_t inputLen);
         size_t Finds(char ch);
         size_t DecodeOut(size_t equalCount, size_t retLen);
-        void FreeMemory(unsigned char *address);
-        void FreeMemory(char *address);
         size_t retLen = 0;
         size_t decodeOutLen = 0;
         size_t outputLen = 0;

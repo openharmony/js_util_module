@@ -79,11 +79,14 @@ namespace OHOS::Util {
         inputEncode_ = static_cast<const unsigned char*>(resultData) + byteOffset;
         unsigned char *ret = EncodeAchieve(inputEncode_, length);
         if (ret == nullptr) {
+            FreeMemory(ret);
             napi_throw_error(env, "-1", "encodeToString input is null");
         }
         const char *encString = reinterpret_cast<const char*>(ret);
         napi_value resultStr = nullptr;
-        NAPI_CALL(env, napi_create_string_utf8(env, encString, strlen(encString), &resultStr));
+        if (strlen(encString) != 0) {
+            NAPI_CALL(env, napi_create_string_utf8(env, encString, strlen(encString), &resultStr));
+        }
         FreeMemory(ret);
         return resultStr;
     }
@@ -281,21 +284,6 @@ namespace OHOS::Util {
         return couts;
     }
 
-    /* Memory cleanup function */
-    void Base64::FreeMemory(unsigned char *address)
-    {
-        if (address != nullptr) {
-            delete[] address;
-            address = nullptr;
-        }
-    }
-    void Base64::FreeMemory(char *address)
-    {
-        if (address != nullptr) {
-            delete[] address;
-            address = nullptr;
-        }
-    }
     napi_value Base64::Encode(napi_value src)
     {
         napi_typedarray_type type;
@@ -599,6 +587,14 @@ namespace OHOS::Util {
         delete stdDecodeInfo;
     }
 
+    /* Memory cleanup function */
+    void FreeMemory(char *address)
+    {
+        if (address != nullptr) {
+            delete[] address;
+            address = nullptr;
+        }
+    }
     void FreeMemory(unsigned char *address)
     {
         if (address != nullptr) {

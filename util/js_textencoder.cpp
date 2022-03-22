@@ -35,33 +35,27 @@ namespace OHOS::Util {
 
     napi_value TextEncoder::Encode(napi_value src) const
     {
-        char *buffer = nullptr;
+        std::string buffer = "";
         size_t bufferSize = 0;
-
-        NAPI_CALL(env_, napi_get_value_string_utf8(env_, src, buffer, 0, &bufferSize));
-        NAPI_ASSERT(env_, bufferSize > 0, "bufferSize == 0");
-        buffer = new char[bufferSize + 1];
-        if (memset_s(buffer, bufferSize + 1, 0, bufferSize + 1) != EOK) {
-            HILOG_ERROR("buffer memset error");
-            delete []buffer;
+        if (napi_get_value_string_utf8(env_, src, nullptr, 0, &bufferSize) != napi_ok) {
+            HILOG_ERROR("can not get src size");
             return nullptr;
         }
-        napi_get_value_string_utf8(env_, src, buffer, bufferSize + 1, &bufferSize);
-
+        buffer.reserve(bufferSize + 1);
+        buffer.resize(bufferSize);
+        if (napi_get_value_string_utf8(env_, src, buffer.data(), bufferSize + 1, &bufferSize) != napi_ok) {
+            HILOG_ERROR("can not get src value");
+            return nullptr;
+        }
         void *data = nullptr;
         napi_value arrayBuffer = nullptr;
         napi_create_arraybuffer(env_, bufferSize, &data, &arrayBuffer);
-        if (memcpy_s(data, bufferSize, reinterpret_cast<void*>(buffer), bufferSize) != EOK) {
+        if (memcpy_s(data, bufferSize, reinterpret_cast<void*>(buffer.data()), bufferSize) != EOK) {
             HILOG_ERROR("copy buffer to arraybuffer error");
-            delete []buffer;
             return nullptr;
         }
-
-        delete []buffer;
-        buffer = nullptr;
         napi_value result = nullptr;
         NAPI_CALL(env_, napi_create_typedarray(env_, napi_uint8_array, bufferSize, arrayBuffer, 0, &result));
-
         return result;
     }
 
