@@ -1016,7 +1016,7 @@ export default {
     TextEncoder: TextEncoder,
     TextDecoder: TextDecoder,
     Base64: Base64,
-    Types: Types,
+    types: Types,
     LruBuffer: LruBuffer,
     RationalNumber : RationalNumber,
     Scope : Scope,
