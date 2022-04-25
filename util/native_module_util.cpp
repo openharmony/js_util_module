@@ -37,7 +37,7 @@ namespace OHOS::Util {
             return nullptr;
         }
         char *type = new char[length + 1];
-        if (memset_s(type, length + 1, '\0', length + 1) != 0) {
+        if (memset_s(type, length + 1, '\0', length + 1) != EOK) {
                 HILOG_ERROR("type memset_s failed");
                 delete[] type;
                 return nullptr;
@@ -122,44 +122,32 @@ namespace OHOS::Util {
         return result;
     }
 
+    static void FreeMemory(napi_value *address)
+    {
+        delete[] address;
+        address = nullptr;
+    }
+
     static napi_value DealWithFormatString(napi_env env, napi_callback_info info)
     {
-        size_t argc = 0;
-        napi_get_cb_info(env, info, &argc, nullptr, nullptr, nullptr);
-        napi_value *argv = nullptr;
-        if (argc > 0) {
-            argv = new napi_value[argc + 1];
-            if (memset_s(argv, argc + 1, 0, argc + 1) != 0) {
-                HILOG_ERROR("argv memset error");
-                delete []argv;
-                return nullptr;
-            }
-        } else {
-            return nullptr;
-        }
-        napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-        char *format = nullptr;
+        size_t argc = 1;
+        napi_value argv = nullptr;
+        napi_get_cb_info(env, info, &argc, 0, nullptr, nullptr);
+
+        napi_get_cb_info(env, info, &argc, &argv, nullptr, nullptr);
+        std::string format = "";
         size_t formatsize = 0;
-        napi_get_value_string_utf8(env, argv[0], nullptr, 0, &formatsize);
-        if (formatsize > 0) {
-            format = new char[formatsize + 1];
-            if (memset_s(format, formatsize + 1, 0, formatsize + 1) != 0) {
-                HILOG_ERROR("format memset error");
-                delete []format;
-                delete []argv;
-                return nullptr;
-            }
-        } else {
-            delete []argv;
+        if (napi_get_value_string_utf8(env, argv, nullptr, 0, &formatsize) != napi_ok) {
+            HILOG_ERROR("can not get argv size");
             return nullptr;
         }
-        napi_get_value_string_utf8(env, argv[0], format, formatsize + 1, &formatsize);
-        std::string str = format;
-        delete []format;
-        delete []argv;
-        argv = nullptr;
-        format = nullptr;
-        return FormatString(env, str);
+        format.reserve(formatsize + 1);
+        format.resize(formatsize);
+        if (napi_get_value_string_utf8(env, argv, format.data(), formatsize + 1, &formatsize) != napi_ok) {
+            HILOG_ERROR("can not get argv value");
+            return nullptr;
+        }
+        return FormatString(env, format);
     }
 
     static std::string PrintfString(const std::string &format, const std::vector<std::string> &value)
@@ -177,33 +165,42 @@ namespace OHOS::Util {
         if (argc > 0) {
             argv = new napi_value[argc];
             napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
-            char *format = nullptr;
+            std::string format = "";
             size_t formatsize = 0;
-            napi_get_value_string_utf8(env, argv[0], nullptr, 0, &formatsize);
-            if (formatsize > 0) {
-                format = new char[formatsize + 1];
+            if (napi_get_value_string_utf8(env, argv[0], nullptr, 0, &formatsize) != napi_ok) {
+                HILOG_ERROR("can not get argv[0] size");
+                FreeMemory(argv);
+                return nullptr;
             }
-            napi_get_value_string_utf8(env, argv[0], format, formatsize + 1, &formatsize);
-            std::string printInfo;
+            format.reserve(formatsize);
+            format.resize(formatsize);
+            if (napi_get_value_string_utf8(env, argv[0], format.data(), formatsize + 1, &formatsize) != napi_ok) {
+                HILOG_ERROR("can not get argv[0] value");
+                FreeMemory(argv);
+                return nullptr;
+            }
             std::vector<std::string> value;
             for (size_t i = 1; i < argc; i++) {
-                char *valueString = nullptr;
+                std::string valueString = "";
                 size_t valuesize = 0;
-                napi_get_value_string_utf8(env, argv[i], nullptr, 0, &valuesize);
-                if (valuesize > 0) {
-                    valueString = new char[valuesize + 1];
+                if (napi_get_value_string_utf8(env, argv[i], nullptr, 0, &valuesize) != napi_ok) {
+                    HILOG_ERROR("can not get argv[i] size");
+                    FreeMemory(argv);
+                    return nullptr;
                 }
-                napi_get_value_string_utf8(env, argv[i], valueString, valuesize + 1, &valuesize);
-                value.push_back(valueString);
-                delete []valueString;
-                valueString = nullptr;
+                valueString.reserve(valuesize);
+                valueString.resize(valuesize);
+                if (napi_get_value_string_utf8(env, argv[i], valueString.data(),
+                                               valuesize + 1, &valuesize) != napi_ok) {
+                    HILOG_ERROR("can not get argv[i] value");
+                    FreeMemory(argv);
+                    return nullptr;
+                }
+                value.push_back(valueString.data());
             }
-            printInfo = PrintfString(format, value);
+            std::string printInfo = PrintfString(format.data(), value);
             napi_create_string_utf8(env, printInfo.c_str(), printInfo.size(), &result);
-            delete []format;
-            delete []argv;
-            argv = nullptr;
-            format = nullptr;
+            FreeMemory(argv);
             return result;
         }
         napi_value res = nullptr;
@@ -292,16 +289,16 @@ namespace OHOS::Util {
             napi_get_value_string_utf8(env, argv, type, typeLen + 1, &typeLen);
         } else if (tempArgc == 2) { // 2: The number of parameters is 2.
             argc = 2; // 2: The number of parameters is 2.
-            napi_value argv[2] = { 0 };
-            NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, &data));
+            napi_value argvArr[2] = { 0 };
+            NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argvArr, nullptr, &data));
             // first para
-            NAPI_CALL(env, napi_get_value_string_utf8(env, argv[0], nullptr, 0, &typeLen));
+            NAPI_CALL(env, napi_get_value_string_utf8(env, argvArr[0], nullptr, 0, &typeLen));
             if (typeLen > 0) {
                 type = ApplyMemory(typeLen);
             }
-            napi_get_value_string_utf8(env, argv[0], type, typeLen + 1, &typeLen);
+            napi_get_value_string_utf8(env, argvArr[0], type, typeLen + 1, &typeLen);
             // second para
-            GetSecPara(env, argv[1], paraVec);
+            GetSecPara(env, argvArr[1], paraVec);
         }
         std::string enconding = "utf-8";
         if (type != nullptr) {
@@ -309,11 +306,11 @@ namespace OHOS::Util {
         }
         delete []type;
         type = nullptr;
-        auto objectInfo = new TextDecoder(env, enconding, paraVec);
+        auto objectInfo = new TextDecoder(enconding, paraVec);
         NAPI_CALL(env, napi_wrap(
             env, thisVar, objectInfo,
-            [](napi_env env, void *data, void *hint) {
-                auto objInfo = (TextDecoder*)data;
+            [](napi_env environment, void *data, void *hint) {
+                auto objInfo = reinterpret_cast<TextDecoder*>(data);
                 if (objInfo != nullptr) {
                     delete objInfo;
                 }
@@ -344,13 +341,13 @@ namespace OHOS::Util {
             NAPI_CALL(env, napi_get_cb_info(env, info, &argc, &argv, nullptr, &dataPara));
             // first para
             NAPI_CALL(env, napi_get_typedarray_info(env, argv, &type, &length, &data, &arraybuffer, &byteOffset));
-            valStr = textDecoder->Decode(argv, iStream);
+            valStr = textDecoder->Decode(env, argv, iStream);
         } else if (tempArgc == 2) { // 2: The number of parameters is 2.
             argc = 2; // 2: The number of parameters is 2.
-            napi_value argv[2] = { 0 };
-            NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argv, nullptr, &dataPara));
+            napi_value argvArr[2] = { 0 };
+            NAPI_CALL(env, napi_get_cb_info(env, info, &argc, argvArr, nullptr, &dataPara));
             // first para
-            NAPI_CALL(env, napi_get_typedarray_info(env, argv[0], &type, &length, &data, &arraybuffer, &byteOffset));
+            NAPI_CALL(env, napi_get_typedarray_info(env, argvArr[0], &type, &length, &data, &arraybuffer, &byteOffset));
             // second para
             napi_value messageKeyStream = nullptr;
             const char *messageKeyStrStream = "stream";
@@ -358,9 +355,9 @@ namespace OHOS::Util {
             napi_value resultStream = nullptr;
             NAPI_CALL(env, napi_create_string_utf8(env, messageKeyStrStream, strlen(messageKeyStrStream),
                 &messageKeyStream));
-            NAPI_CALL(env, napi_get_property(env, argv[1], messageKeyStream, &resultStream));
+            NAPI_CALL(env, napi_get_property(env, argvArr[1], messageKeyStream, &resultStream));
             NAPI_CALL(env, napi_get_value_bool(env, resultStream, &iStream));
-            valStr = textDecoder->Decode(argv[0], iStream);
+            valStr = textDecoder->Decode(env, argvArr[0], iStream);
         }
         return valStr;
     }
@@ -371,7 +368,7 @@ namespace OHOS::Util {
         NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
         TextDecoder *textDecoder = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&textDecoder));
-        napi_value retVal = textDecoder->GetEncoding();
+        napi_value retVal = textDecoder->GetEncoding(env);
         return retVal;
     }
 
@@ -381,7 +378,7 @@ namespace OHOS::Util {
         NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
         TextDecoder *textDecoder = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&textDecoder));
-        napi_value retVal = textDecoder->GetFatal();
+        napi_value retVal = textDecoder->GetFatal(env);
         return retVal;
     }
 
@@ -391,7 +388,7 @@ namespace OHOS::Util {
         NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, nullptr));
         TextDecoder *textDecoder = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&textDecoder));
-        napi_value retVal = textDecoder->GetIgnoreBOM();
+        napi_value retVal = textDecoder->GetIgnoreBOM(env);
         return retVal;
     }
 
@@ -402,11 +399,11 @@ namespace OHOS::Util {
         void *data = nullptr;
         NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, &data));
 
-        auto object = new TextEncoder(env);
+        auto object = new TextEncoder();
         NAPI_CALL(env, napi_wrap(
             env, thisVar, object,
-            [](napi_env env, void *data, void *hint) {
-                auto obj = (TextEncoder*)data;
+            [](napi_env environment, void *data, void *hint) {
+                auto obj = reinterpret_cast<TextEncoder*>(data);
                 if (obj != nullptr) {
                     delete obj;
                 }
@@ -423,7 +420,7 @@ namespace OHOS::Util {
         TextEncoder *object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
 
-        return object->GetEncoding();
+        return object->GetEncoding(env);
     }
 
     static napi_value Encode(napi_env env, napi_callback_info info)
@@ -444,7 +441,7 @@ namespace OHOS::Util {
         TextEncoder *object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
 
-        napi_value result = object->Encode(args);
+        napi_value result = object->Encode(env, args);
 
         return result;
     }
@@ -475,7 +472,7 @@ namespace OHOS::Util {
         TextEncoder *object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
 
-        napi_value result = object->EncodeInto(args[0], args[1]);
+        napi_value result = object->EncodeInto(env, args[0], args[1]);
 
         return result;
     }
@@ -520,11 +517,11 @@ namespace OHOS::Util {
         napi_value thisVar = nullptr;
         void *data = nullptr;
         NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, &data));
-        auto objectInfo = new Base64(env);
+        auto objectInfo = new Base64();
         napi_wrap(
             env, thisVar, objectInfo,
-            [](napi_env env, void *data, void *hint) {
-                auto objInfo = (Base64*)data;
+            [](napi_env environment, void *data, void *hint) {
+                auto objInfo = reinterpret_cast<Base64*>(data);
                 if (objInfo != nullptr) {
                     delete objInfo;
                 }
@@ -550,7 +547,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, valuetype0 == napi_uint8_array, "Wrong argument type. napi_uint8_array expected.");
         Base64 *object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->EncodeSync(args[0]);
+        napi_value result = object->EncodeSync(env, args[0]);
         return result;
     }
 
@@ -571,7 +568,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, valuetype0 == napi_uint8_array, "Wrong argument type. napi_uint8_array expected.");
         Base64 *object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->EncodeToStringSync(args[0]);
+        napi_value result = object->EncodeToStringSync(env, args[0]);
         return result;
     }
 
@@ -599,7 +596,7 @@ namespace OHOS::Util {
         }
         Base64 *object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->DecodeSync(args[0]);
+        napi_value result = object->DecodeSync(env, args[0]);
         return result;
     }
     static napi_value EncodeAsync(napi_env env, napi_callback_info info)
@@ -619,7 +616,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, valuetype0 == napi_uint8_array, "Wrong argument type. napi_uint8_array expected.");
         Base64 *object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->Encode(args[0]);
+        napi_value result = object->Encode(env, args[0]);
         return result;
     }
     static napi_value EncodeToStringAsync(napi_env env, napi_callback_info info)
@@ -639,7 +636,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, valuetype0 == napi_uint8_array, "Wrong argument type. napi_uint8_array expected.");
         Base64 *object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->EncodeToString(args[0]);
+        napi_value result = object->EncodeToString(env, args[0]);
         return result;
     }
     static napi_value DecodeAsync(napi_env env, napi_callback_info info)
@@ -666,7 +663,7 @@ namespace OHOS::Util {
         }
         Base64 *object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->Decode(args[0]);
+        napi_value result = object->Decode(env, args[0]);
         return result;
     }
 
@@ -677,7 +674,7 @@ namespace OHOS::Util {
         const char testStr[] = "test";
         napi_status status = napi_create_external(
             env, (void*)testStr,
-            [](napi_env env, void* data, void* hint) {},
+            [](napi_env environment, void* data, void* hint) {},
             (void*)testStr, &result);
         if (status != napi_ok) {
             return  NULL;
@@ -690,13 +687,13 @@ namespace OHOS::Util {
         napi_value thisVar = nullptr;
         void* data = nullptr;
         NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, &data));
-        auto objectInfo = new Types(env);
+        auto objectInfo = new Types();
         napi_wrap(
             env, thisVar, objectInfo,
-            [](napi_env env, void* data, void* hint) {
-                auto objectInfo = (Types*)data;
-                if (objectInfo != nullptr) {
-                    delete objectInfo;
+            [](napi_env environment, void* data, void* hint) {
+                auto objectInformation = reinterpret_cast<Types*>(data);
+                if (objectInformation != nullptr) {
+                    delete objectInformation;
                 }
             },
             nullptr, nullptr);
@@ -711,7 +708,7 @@ namespace OHOS::Util {
         NAPI_CALL(env, napi_get_cb_info(env, info, &argc, &args, &thisVar, nullptr));
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value rst = object->IsAnyArrayBuffer(args);
+        napi_value rst = object->IsAnyArrayBuffer(env, args);
         return rst;
     }
 
@@ -723,7 +720,7 @@ namespace OHOS::Util {
         NAPI_CALL(env, napi_get_cb_info(env, info, &argc, &args, &thisVar, nullptr));
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value rst = object->IsArrayBufferView(args);
+        napi_value rst = object->IsArrayBufferView(env, args);
         return rst;
     }
 
@@ -735,7 +732,7 @@ namespace OHOS::Util {
         NAPI_CALL(env, napi_get_cb_info(env, info, &argc, &args, &thisVar, nullptr));
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value rst = object->IsArgumentsObject(args);
+        napi_value rst = object->IsArgumentsObject(env, args);
         return rst;
     }
 
@@ -747,7 +744,7 @@ namespace OHOS::Util {
         NAPI_CALL(env, napi_get_cb_info(env, info, &argc, &args, &thisVar, nullptr));
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value rst = object->IsArrayBuffer(args);
+        napi_value rst = object->IsArrayBuffer(env, args);
         return rst;
     }
 
@@ -759,7 +756,7 @@ namespace OHOS::Util {
         NAPI_CALL(env, napi_get_cb_info(env, info, &argc, &args, &thisVar, nullptr));
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value rst = object->IsAsyncFunction(args);
+        napi_value rst = object->IsAsyncFunction(env, args);
         return rst;
     }
 
@@ -771,7 +768,7 @@ namespace OHOS::Util {
         NAPI_CALL(env, napi_get_cb_info(env, info, &argc, &args, &thisVar, nullptr));
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value rst = object->IsBigInt64Array(args);
+        napi_value rst = object->IsBigInt64Array(env, args);
         return rst;
     }
 
@@ -783,7 +780,7 @@ namespace OHOS::Util {
         NAPI_CALL(env, napi_get_cb_info(env, info, &argc, &args, &thisVar, nullptr));
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value rst = object->IsBigUint64Array(args);
+        napi_value rst = object->IsBigUint64Array(env, args);
         return rst;
     }
 
@@ -795,7 +792,7 @@ namespace OHOS::Util {
         NAPI_CALL(env, napi_get_cb_info(env, info, &argc, &args, &thisVar, nullptr));
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value rst = object->IsBooleanObject(args);
+        napi_value rst = object->IsBooleanObject(env, args);
         return rst;
     }
 
@@ -807,7 +804,7 @@ namespace OHOS::Util {
         NAPI_CALL(env, napi_get_cb_info(env, info, &argc, &args, &thisVar, nullptr));
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value rst = object->IsBoxedPrimitive(args);
+        napi_value rst = object->IsBoxedPrimitive(env, args);
         return rst;
     }
 
@@ -819,7 +816,7 @@ namespace OHOS::Util {
         NAPI_CALL(env, napi_get_cb_info(env, info, &argc, &args, &thisVar, nullptr));
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value rst = object->IsDataView(args);
+        napi_value rst = object->IsDataView(env, args);
         return rst;
     }
 
@@ -831,7 +828,7 @@ namespace OHOS::Util {
         NAPI_CALL(env, napi_get_cb_info(env, info, &argc, &args, &thisVar, nullptr));
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value rst = object->IsDate(args);
+        napi_value rst = object->IsDate(env, args);
         return rst;
     }
 
@@ -843,7 +840,7 @@ namespace OHOS::Util {
         NAPI_CALL(env, napi_get_cb_info(env, info, &argc, &args, &thisVar, nullptr));
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value rst = object->IsExternal(args);
+        napi_value rst = object->IsExternal(env, args);
         return rst;
     }
 
@@ -855,7 +852,7 @@ namespace OHOS::Util {
         NAPI_CALL(env, napi_get_cb_info(env, info, &argc, &args, &thisVar, nullptr));
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value rst = object->IsFloat32Array(args);
+        napi_value rst = object->IsFloat32Array(env, args);
         return rst;
     }
 
@@ -867,7 +864,7 @@ namespace OHOS::Util {
         NAPI_CALL(env, napi_get_cb_info(env, info, &argc, &args, &thisVar, nullptr));
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value rst = object->IsFloat64Array(args);
+        napi_value rst = object->IsFloat64Array(env, args);
         return rst;
     }
 
@@ -879,7 +876,7 @@ namespace OHOS::Util {
         NAPI_CALL(env, napi_get_cb_info(env, info, &argc, &args, &thisVar, nullptr));
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value rst = object->IsGeneratorFunction(args);
+        napi_value rst = object->IsGeneratorFunction(env, args);
         return rst;
     }
 
@@ -893,7 +890,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsGeneratorObject(args);
+        napi_value result = object->IsGeneratorObject(env, args);
         return result;
     }
 
@@ -907,7 +904,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsInt8Array(args);
+        napi_value result = object->IsInt8Array(env, args);
         return result;
     }
 
@@ -921,7 +918,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsInt16Array(args);
+        napi_value result = object->IsInt16Array(env, args);
         return result;
     }
 
@@ -935,7 +932,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsInt32Array(args);
+        napi_value result = object->IsInt32Array(env, args);
         return result;
     }
 
@@ -949,7 +946,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsMap(args);
+        napi_value result = object->IsMap(env, args);
         return result;
     }
 
@@ -963,7 +960,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsMapIterator(args);
+        napi_value result = object->IsMapIterator(env, args);
         return result;
     }
 
@@ -977,7 +974,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsModuleNamespaceObject(args);
+        napi_value result = object->IsModuleNamespaceObject(env, args);
         return result;
     }
 
@@ -991,7 +988,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsNativeError(args);
+        napi_value result = object->IsNativeError(env, args);
         return result;
     }
 
@@ -1005,7 +1002,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsNumberObject(args);
+        napi_value result = object->IsNumberObject(env, args);
         return result;
     }
 
@@ -1019,7 +1016,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsPromise(args);
+        napi_value result = object->IsPromise(env, args);
         return result;
     }
 
@@ -1033,7 +1030,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsProxy(args);
+        napi_value result = object->IsProxy(env, args);
         return result;
     }
 
@@ -1047,7 +1044,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsRegExp(args);
+        napi_value result = object->IsRegExp(env, args);
         return result;
     }
 
@@ -1061,7 +1058,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsSet(args);
+        napi_value result = object->IsSet(env, args);
         return result;
     }
 
@@ -1075,7 +1072,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsSetIterator(args);
+        napi_value result = object->IsSetIterator(env, args);
         return result;
     }
 
@@ -1089,7 +1086,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsSharedArrayBuffer(args);
+        napi_value result = object->IsSharedArrayBuffer(env, args);
         return result;
     }
 
@@ -1103,7 +1100,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsStringObject(args);
+        napi_value result = object->IsStringObject(env, args);
         return result;
     }
 
@@ -1117,7 +1114,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsSymbolObject(args);
+        napi_value result = object->IsSymbolObject(env, args);
         return result;
     }
 
@@ -1131,7 +1128,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsTypedArray(args);
+        napi_value result = object->IsTypedArray(env, args);
         return result;
     }
 
@@ -1145,7 +1142,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsUint8Array(args);
+        napi_value result = object->IsUint8Array(env, args);
         return result;
     }
 
@@ -1159,7 +1156,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsUint8ClampedArray(args);
+        napi_value result = object->IsUint8ClampedArray(env, args);
         return result;
     }
 
@@ -1173,7 +1170,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsUint16Array(args);
+        napi_value result = object->IsUint16Array(env, args);
         return result;
     }
 
@@ -1187,7 +1184,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsUint32Array(args);
+        napi_value result = object->IsUint32Array(env, args);
         return result;
     }
 
@@ -1201,7 +1198,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsWeakMap(args);
+        napi_value result = object->IsWeakMap(env, args);
         return result;
     }
 
@@ -1215,7 +1212,7 @@ namespace OHOS::Util {
         NAPI_ASSERT(env, argc >= requireArgc, "Wrong number of arguments");
         Types* object = nullptr;
         NAPI_CALL(env, napi_unwrap(env, thisVar, (void**)&object));
-        napi_value result = object->IsWeakSet(args);
+        napi_value result = object->IsWeakSet(env, args);
         return result;
     }
 

@@ -26,8 +26,8 @@
 #include "unicode/unistr.h"
 #include "utils/log.h"
 namespace OHOS::Util {
-    TextDecoder::TextDecoder(napi_env env, std::string buff, std::vector<int> optionVec)
-        : env_(env), label_(0), encStr_(buff), tranTool_(nullptr, nullptr)
+    TextDecoder::TextDecoder(std::string buff, std::vector<int> optionVec)
+        : label_(0), encStr_(buff), tranTool_(nullptr, nullptr)
     {
         uint32_t i32Flag = 0;
         if (optionVec.size() == 2) { // 2:Meaning of optionVec size 2
@@ -59,18 +59,18 @@ namespace OHOS::Util {
     }
 
 
-    napi_value TextDecoder::Decode(napi_value src, bool iflag)
+    napi_value TextDecoder::Decode(napi_env env, napi_value src, bool iflag)
     {
-        uint32_t flags = 0;
-        flags |= (iflag ? 0 : static_cast<uint32_t>(ConverterFlags::FLUSH_FLG));
-        UBool flush = ((flags & static_cast<uint32_t>(ConverterFlags::FLUSH_FLG))) ==
-        static_cast<uint32_t>(ConverterFlags::FLUSH_FLG);
+        uint8_t flags = 0;
+        flags |= (iflag ? 0 : static_cast<uint8_t>(ConverterFlags::FLUSH_FLG));
+        UBool flush = ((flags & static_cast<uint8_t>(ConverterFlags::FLUSH_FLG))) ==
+        static_cast<uint8_t>(ConverterFlags::FLUSH_FLG);
         napi_typedarray_type type;
         size_t length = 0;
         void *data1 = nullptr;
         size_t byteOffset = 0;
         napi_value arrayBuffer = nullptr;
-        NAPI_CALL(env_, napi_get_typedarray_info(env_, src, &type, &length, &data1, &arrayBuffer, &byteOffset));
+        NAPI_CALL(env, napi_get_typedarray_info(env, src, &type, &length, &data1, &arrayBuffer, &byteOffset));
         const char *source = static_cast<char*>(data1);
         UErrorCode codeFlag = U_ZERO_ERROR;
         size_t limit = GetMinByteSize() * length;
@@ -101,7 +101,7 @@ namespace OHOS::Util {
         std::u16string tempStr16(arrDat);
         std::string tepStr = std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> {}.to_bytes(tempStr16);
         napi_value resultStr = nullptr;
-        NAPI_CALL(env_, napi_create_string_utf8(env_, tepStr.c_str(), tepStr.size(), &resultStr));
+        NAPI_CALL(env, napi_create_string_utf8(env, tepStr.c_str(), tepStr.size(), &resultStr));
         FreedMemory(arr);
         if (flush) {
             label_ &= static_cast<uint32_t>(ConverterFlags::BOM_SEEN_FLG);
@@ -110,15 +110,15 @@ namespace OHOS::Util {
         return resultStr;
     }
 
-    napi_value TextDecoder::GetEncoding() const
+    napi_value TextDecoder::GetEncoding(napi_env env) const
     {
         size_t length = strlen(encStr_.c_str());
         napi_value result = nullptr;
-        NAPI_CALL(env_, napi_create_string_utf8(env_, encStr_.c_str(), length, &result));
+        NAPI_CALL(env, napi_create_string_utf8(env, encStr_.c_str(), length, &result));
         return result;
     }
 
-    napi_value TextDecoder::GetFatal() const
+    napi_value TextDecoder::GetFatal(napi_env env) const
     {
         uint32_t temp = label_ & static_cast<uint32_t>(ConverterFlags::FATAL_FLG);
         bool comRst = false;
@@ -128,11 +128,11 @@ namespace OHOS::Util {
             comRst = false;
         }
         napi_value result = nullptr;
-        NAPI_CALL(env_, napi_get_boolean(env_, comRst, &result));
+        NAPI_CALL(env, napi_get_boolean(env, comRst, &result));
         return result;
     }
 
-    napi_value TextDecoder::GetIgnoreBOM() const
+    napi_value TextDecoder::GetIgnoreBOM(napi_env env) const
     {
         uint32_t temp = label_ & static_cast<uint32_t>(ConverterFlags::IGNORE_BOM_FLG);
         bool comRst = false;
@@ -142,7 +142,7 @@ namespace OHOS::Util {
             comRst = false;
         }
         napi_value result;
-        NAPI_CALL(env_, napi_get_boolean(env_, comRst, &result));
+        NAPI_CALL(env, napi_get_boolean(env, comRst, &result));
         return result;
     }
 
@@ -151,7 +151,7 @@ namespace OHOS::Util {
         if (tranTool_ == nullptr) {
             return 0;
         }
-        size_t res = ucnv_getMinCharSize(tranTool_.get());
+        size_t res = static_cast<size_t>(ucnv_getMinCharSize(tranTool_.get()));
         return res;
     }
 

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef FOUNDATION_CCRUNTIME_TEXTCODER_JS_TEXTENCODER_H
-#define FOUNDATION_CCRUNTIME_TEXTCODER_JS_TEXTENCODER_H
+#ifndef UTIL_JS_TEXTENCODER_H_
+#define UTIL_JS_TEXTENCODER_H_
 
 #include <string>
 
@@ -23,17 +23,43 @@
 namespace OHOS::Util {
     class TextEncoder {
     public:
-        explicit TextEncoder(napi_env env);
+        /**
+         * Constructor of textdecoder.
+         *
+         */
+        explicit TextEncoder() : encoding_("utf-8") {}
 
+        /**
+         * Destructor of textencoder.
+         */
         virtual ~TextEncoder() {}
 
-        napi_value GetEncoding() const;
-        napi_value Encode(napi_value src) const;
-        napi_value EncodeInto(napi_value src, napi_value dest) const;
+        /**
+         * Get encoding format.
+         *
+         * @param env NAPI environment parameters.
+         */
+        napi_value GetEncoding(napi_env env) const;
+
+        /**
+         * Output the corresponding text after encoding the input parameters.
+         *
+         * @param env NAPI environment parameters.
+         * @param src A string that needs to be encoded.
+         */
+        napi_value Encode(napi_env env, napi_value src) const;
+
+        /**
+         * Place the generated UTF-8 encoded text.
+         *
+         * @param env NAPI environment parameters.
+         * @param src A string that needs to be encoded.
+         * @param dest Uint8array object instance, which is used to put the generated UTF-8 encoded text into it.
+         */
+        napi_value EncodeInto(napi_env env, napi_value src, napi_value dest) const;
 
     private:
-        napi_env env_;
         std::string encoding_;
     };
 }
-#endif /* FOUNDATION_CCRUNTIME_TEXTCODER_JS_TEXTENCODER_H */
+#endif // UTIL_JS_TEXTENCODER_H_
