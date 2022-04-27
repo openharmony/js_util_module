@@ -472,7 +472,7 @@ class LruBuffer
     public constructor(capacity?: number)
     {
         if (capacity !== undefined) {
-            if (capacity <= 0 || capacity%1 !== 0 || capacity > this.maxNumber) {
+            if (capacity <= 0 || capacity % 1 !== 0 || capacity > this.maxNumber) {
                 throw new Error('data error');
             }
             this.maxSize = capacity;
@@ -1017,7 +1017,7 @@ export default {
     TextEncoder: TextEncoder,
     TextDecoder: TextDecoder,
     Base64: Base64,
-    Types: Types,
+    types: Types,
     LruBuffer: LruBuffer,
     RationalNumber : RationalNumber,
     Scope : Scope,
