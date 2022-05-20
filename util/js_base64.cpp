@@ -83,9 +83,7 @@ namespace OHOS::Util {
         }
         const char *encString = reinterpret_cast<const char*>(ret);
         napi_value resultStr = nullptr;
-        if (strlen(encString) != 0) {
-            NAPI_CALL(env, napi_create_string_utf8(env, encString, strlen(encString), &resultStr));
-        }
+        napi_create_string_utf8(env, encString, strlen(encString), &resultStr);
         FreeMemory(ret);
         return resultStr;
     }
