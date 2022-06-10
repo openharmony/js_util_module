@@ -392,15 +392,47 @@ namespace OHOS::Util {
         return retVal;
     }
 
+    static bool CheckEncodingFormat(std::string &encoding)
+    {
+        const std::string conventFormat("utf8-t,UTF-8,gbk,GBK,GB2312,gb2312,GB18030,gb18030");
+        if (conventFormat.find(encoding.c_str()) != conventFormat.npos) {
+            return true;
+        }
+        return false;
+    }
+
     // Encoder
     static napi_value TextEncoderConstructor(napi_env env, napi_callback_info info)
     {
+        size_t argc = 0;
         napi_value thisVar = nullptr;
-        void *data = nullptr;
-        NAPI_CALL(env, napi_get_cb_info(env, info, nullptr, nullptr, &thisVar, &data));
+        napi_value src = nullptr;
+        napi_get_cb_info(env, info, &argc, &src, &thisVar, nullptr);
+        std::string enconding = "utf-8";
+        if (argc == 1) {
+            napi_get_cb_info(env, info, &argc, &src, nullptr, nullptr);
 
-        auto object = new TextEncoder();
-        NAPI_CALL(env, napi_wrap(
+            napi_valuetype valuetype;
+            napi_typeof(env, src, &valuetype);
+            NAPI_ASSERT(env, valuetype == napi_string, "Wrong argument type. String expected.");
+            std::string buffer = "";
+            size_t bufferSize = 0;
+            if (napi_get_value_string_utf8(env, src, nullptr, 0, &bufferSize) != napi_ok) {
+                HILOG_ERROR("can not get src size");
+                return nullptr;
+            }
+            buffer.reserve(bufferSize + 1);
+            buffer.resize(bufferSize);
+            if (napi_get_value_string_utf8(env, src, buffer.data(), bufferSize + 1, &bufferSize) != napi_ok) {
+                HILOG_ERROR("can not get src value");
+                return nullptr;
+            }
+            NAPI_ASSERT(env, CheckEncodingFormat(buffer),
+                        "Wrong encoding format, only support utf-8 gbk gb2312 gb18030");
+            enconding = buffer;
+        }
+        auto object = new TextEncoder(enconding);
+        napi_wrap(
             env, thisVar, object,
             [](napi_env environment, void *data, void *hint) {
                 auto obj = reinterpret_cast<TextEncoder*>(data);
@@ -408,7 +440,7 @@ namespace OHOS::Util {
                     delete obj;
                 }
             },
-            nullptr, nullptr));
+            nullptr, nullptr);
         return thisVar;
     }
 

@@ -134,8 +134,9 @@ base/compileruntime/js_util_module/
 ### Interface description
 | Interface name | Description |
 | -------- | -------- |
-| readonly encoding : string | In the TextEncoder module, get the encoding format, only UTF-8 is supported. |
-| encode(input : string) : Uint8Array | Input string string, encode and output UTF-8 byte stream. |
+| constructor(encoding? : string) | Constructor, the parameter encoding indicates the format of encoding. Default utf-8, Support gb18030, gbk, gb2312. |
+| readonly encoding : string | In the TextEncoder module, get the encoding format. |
+| encode(input : string) : Uint8Array | Input string string, encoding according to encoding and output uint8 byte stream. |
 | encodeInto(input : string, dest : Uint8Array) : {read : number, written : number} | Enter the string string, dest represents the storage location after encoding, and returns an object, read represents the number of characters that have been encoded,and written represents the size of bytes occupied by the encoded characters. |
 | constructor(encoding? : string, options? : {fatal? : boolean, ignoreBOM? : boolean}) | Constructor, the first parameter encoding indicates the format of decoding.The second parameter represents some attributes.Fatal in the attribute indicates whether an exception is thrown, and ignoreBOM indicates whether to ignore the bom flag. |
 | readonly encoding : string | In the TextDecoder module, get the set decoding format. |

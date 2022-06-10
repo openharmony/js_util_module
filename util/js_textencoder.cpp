@@ -15,11 +15,10 @@
 
 #include "js_textencoder.h"
 
-#include <string>
-
 #include "native_engine.h"
 #include "securec.h"
 #include "utils/log.h"
+
 namespace OHOS::Util {
     napi_value TextEncoder::GetEncoding(napi_env env) const
     {
@@ -32,26 +31,33 @@ namespace OHOS::Util {
     napi_value TextEncoder::Encode(napi_env env, napi_value src) const
     {
         std::string buffer = "";
-        size_t bufferSize = 0;
-        if (napi_get_value_string_utf8(env, src, nullptr, 0, &bufferSize) != napi_ok) {
-            HILOG_ERROR("can not get src size");
-            return nullptr;
+        if (!(encoding_ == "utf-8" || encoding_ == "UTF-8")) {
+            NativeEngine *engine = reinterpret_cast<NativeEngine*>(env);
+            NativeValue *nativeValue = reinterpret_cast<NativeValue*>(src);
+            engine->EncodeToChinese(nativeValue, buffer, encoding_);
+        } else {
+            size_t bufferSize = 0;
+            if (napi_get_value_string_utf8(env, src, nullptr, 0, &bufferSize) != napi_ok) {
+                HILOG_ERROR("can not get src size");
+                return nullptr;
+            }
+            buffer.resize(bufferSize);
+            if (napi_get_value_string_utf8(env, src, buffer.data(), bufferSize + 1, &bufferSize) != napi_ok) {
+                HILOG_ERROR("can not get src value");
+                return nullptr;
+            }
         }
-        buffer.reserve(bufferSize + 1);
-        buffer.resize(bufferSize);
-        if (napi_get_value_string_utf8(env, src, buffer.data(), bufferSize + 1, &bufferSize) != napi_ok) {
-            HILOG_ERROR("can not get src value");
-            return nullptr;
-        }
+
+        size_t outLen = buffer.length();
         void *data = nullptr;
         napi_value arrayBuffer = nullptr;
-        napi_create_arraybuffer(env, bufferSize, &data, &arrayBuffer);
-        if (memcpy_s(data, bufferSize, reinterpret_cast<void*>(buffer.data()), bufferSize) != EOK) {
+        napi_create_arraybuffer(env, outLen, &data, &arrayBuffer);
+        if (memcpy_s(data, outLen, reinterpret_cast<void*>(buffer.data()), outLen) != EOK) {
             HILOG_ERROR("copy buffer to arraybuffer error");
             return nullptr;
         }
         napi_value result = nullptr;
-        NAPI_CALL(env, napi_create_typedarray(env, napi_uint8_array, bufferSize, arrayBuffer, 0, &result));
+        napi_create_typedarray(env, napi_uint8_array, outLen, arrayBuffer, 0, &result);
         return result;
     }
 
