@@ -135,8 +135,9 @@ base/compileruntime/js_util_module/
 
 | 接口名 | 说明 |
 | -------- | -------- |
+| constructor(encoding? : string) | 构造函数，参数encoding表示编码的格式。默认utf-8, 支持gb18030, gbk, gb2312. |
 | readonly encoding : string | 在TextEncoder类中，获取编码的格式，只支持UTF-8。 |
-| encode(input : string) : Uint8Array | 输入stirng字符串，编码并输出UTF-8字节流。 |
+| encode(input : string) : Uint8Array | 输入stirng字符串，根据encodeing编码并输出uint8字节流。 |
 | encodeInto(input : string, dest : Uint8Array) : {read : number, written : number} | 输入stirng字符串，dest表示编码后存放位置，返回一个对象，read表示已经编码的字符的个数，written表示已编码字符所占字节的大小。 |
 | constructor(encoding? : string, options? : {fatal? : boolean, ignoreBOM? : boolean}) | 构造函数，第一个参数encoding表示解码的格式。第二个参数表示一些属性。属性中fatal表示是否抛出异常，ignoreBOM表示是否忽略bom标志。 |
 | readonly encoding : string | 在TextDecoder类中，获取设置的解码格式。 |

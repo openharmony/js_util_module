@@ -26,8 +26,9 @@ namespace OHOS::Util {
         /**
          * Constructor of textdecoder.
          *
+         * @param encoding Encoding format
          */
-        explicit TextEncoder() : encoding_("utf-8") {}
+        explicit TextEncoder(const std::string &encoding) : encoding_(encoding) {}
 
         /**
          * Destructor of textencoder.
