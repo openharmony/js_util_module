@@ -441,7 +441,23 @@ function callbackWrapper(original : Fn) : void
     Object.defineProperties(cb, descriptors);
 }
 
-function promiseWrapper(func : Function) : Function
+function promiseWrapper(func : Function) : Object
+{
+    return function (...args : Array<Object>) {
+        return new Promise((resolve, reject) => {
+            let callback : Function = function (err : Object | string, ...values : Array<Object>) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(values);
+                }
+            };
+            func.apply(null, [...args, callback]);
+        });
+    };
+}
+
+function promisify(func : Function) : Function
 {
     return function (...args : Array<Object>) {
         return new Promise((resolve, reject) => {
@@ -1012,6 +1028,7 @@ export default {
     getErrorString: getErrorString,
     callbackWrapper: callbackWrapper,
     promiseWrapper: promiseWrapper,
+    promisify: promisify,
     createExternalType: createExternalType,
     TextEncoder: TextEncoder,
     TextDecoder: TextDecoder,
