@@ -17,6 +17,7 @@
 #define UTIL_JS_TEXTDECODER_H_
 
 #include <memory.h>
+#include <mutex>
 #include <string>
 #include <vector>
 #include "napi/native_api.h"
@@ -163,6 +164,7 @@ namespace OHOS::Util {
         uint32_t label_;
         std::string encStr_;
         TransformToolPointer tranTool_;
+        std::mutex decodeLock_;
     };
 }
 #endif // UTIL_JS_TEXTDECODER_H_
